@@ -5,16 +5,18 @@
   "type": "module",
   "main": "electron/dist/main.js",
   "scripts": {
-    "dev": "vite --port 5173 --strictPort",
-    "dev:react": "vite --port 5173 --strictPort",
-    "dev:reset": "node scripts/kill-vite.mjs && vite --port 5173 --strictPort --host",
+    "dev": "vite --config client/vite.config.ts --port 5173",
+    "dev:client": "vite --config client/vite.config.ts --port 5173",
+    "dev:reset": "node scripts/kill-vite.mjs && node scripts/kill-port.mjs 5173 --force && vite --config client/vite.config.ts --port 5173 --strictPort --host",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:all": "concurrently -n web,api -c cyan,magenta \"npm run dev\" \"npm --prefix backend run dev\"",
     "electron:build": "node scripts/build-electron.mjs",
-    "electron:dev": "wait-on http://localhost:5173 && npm run electron:build && electron .",
+    "electron:dev": "npm run electron:build && electron .",
     "dev:electron:attach": "npm run electron:dev",
     "dev:electron": "node scripts/dev-electron.mjs",
-    "build": "npm run electron:build && tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build": "npm run electron:build && tsc -b && vite build --config client/vite.config.ts",
+    "lint": "eslint --config client/eslint.config.js client/src",
+    "preview": "vite preview --config client/vite.config.ts"
   },
   "dependencies": {
     "@boxicons/react": "^1.0.2",

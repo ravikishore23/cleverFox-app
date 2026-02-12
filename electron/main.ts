@@ -29,11 +29,14 @@ function createMainWindow() {
 
   if (isDev) {
     // DEV: Vite dev server
-    mainWindow.loadURL("http://localhost:5173");
+    const devUrl = process.env.CLEVERFOX_VITE_URL ?? "http://localhost:5173";
+    mainWindow.loadURL(devUrl);
     mainWindow.webContents.openDevTools();
   } else {
     // PROD: Vite build output
-    mainWindow.loadFile(path.join(__dirname, "../../dist-react/index.html"));
+    mainWindow.loadFile(
+      path.join(__dirname, "../../client/dist-react/index.html"),
+    );
   }
 
   mainWindow.once("ready-to-show", () => {

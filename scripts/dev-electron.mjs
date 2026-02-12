@@ -62,12 +62,23 @@ const viteUp = await isServerUp(VITE_URL);
 
 if (!viteUp) {
   // Start Vite only if it's not already running.
-  viteChild = spawnNpmRun("dev", {
+  // Use dev:reset to kill stale dev servers + bind host.
+  viteChild = spawnNpmRun("dev:reset", {
     env: { ...process.env },
   });
 }
 
-// Always run electron:dev (it will wait-on Vite URL).
+// Wait for Vite before launching Electron.
+let retries = 0;
+while (!(await isServerUp(VITE_URL))) {
+  await new Promise((r) => setTimeout(r, 250));
+  retries += 1;
+  if (retries > 120) {
+    console.error(`[dev-electron] Vite did not start at ${VITE_URL}`);
+    shutdown(1);
+  }
+}
+
 const electronChild = spawnNpmRun("electron:dev", {
   env: { ...process.env, CLEVERFOX_VITE_URL: VITE_URL },
 });

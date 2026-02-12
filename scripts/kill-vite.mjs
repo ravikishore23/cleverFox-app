@@ -1,4 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
+import path from "node:path";
 
 function killPid(pid) {
   try {
@@ -10,13 +11,19 @@ function killPid(pid) {
 }
 
 function killViteWindows() {
-  const projectRoot = process.cwd();
-  const needle = `${projectRoot}\node_modules\vite\bin\vite.js`;
+  // Match Vite's CLI path even when launched via node_modules/.bin, where the
+  // command line often contains: node_modules\.bin\..\vite\bin\vite.js
+  const viteBinNeedle = path.win32.join("vite", "bin", "vite.js");
+  const viteCliNeedle = path.win32.join("vite", "dist", "node", "cli.js");
 
   const ps = `
 $ErrorActionPreference = 'SilentlyContinue'
 $procs = Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
-  Where-Object { $_.CommandLine -like '*${needle.replace(/\\/g, "\\\\")}*' }
+  Where-Object {
+    $_.CommandLine -like '*${viteBinNeedle.replace(/\\/g, "\\\\")}*' -or
+    $_.CommandLine -like '*${viteCliNeedle.replace(/\\/g, "\\\\")}*' -or
+    $_.CommandLine -like '*--config client/vite.config.ts*'
+  }
 if (-not $procs) { '[]' } else { ($procs | Select-Object -ExpandProperty ProcessId) | ConvertTo-Json -Compress }
 `.trim();
 

@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LandingPage from "./components/ui/LandingPage";
 import LoginPage from "./components/ui/LoginPage";
 import SignupPage from "./components/ui/SignupPage";
 import StudyRoomPage from "./components/ui/StudyRoomPage";
+
+import {
+  cleanSpotifyCallbackFromUrl,
+  getDefaultRedirectUri,
+  handleSpotifyOAuthCallback,
+} from "./lib/spotify/auth";
 
 type Screen = "landing" | "login" | "signup" | "studyroom";
 
@@ -14,13 +20,20 @@ function App() {
   const [screen, setScreen] = useState<Screen>("landing");
   const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID as
+      | string
+      | undefined;
+    if (!clientId) return;
+
+    const redirectUri = getDefaultRedirectUri();
+    handleSpotifyOAuthCallback({ clientId, redirectUri })
+      .catch(() => null)
+      .finally(() => cleanSpotifyCallbackFromUrl());
+  }, []);
+
   if (screen === "studyroom") {
-    return (
-      <StudyRoomPage
-        user={user}
-        onExit={() => setScreen("landing")}
-      />
-    );
+    return <StudyRoomPage user={user} onExit={() => setScreen("landing")} />;
   }
 
   if (screen === "login") {
