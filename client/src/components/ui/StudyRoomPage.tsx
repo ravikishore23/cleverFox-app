@@ -26,11 +26,11 @@ import {
 } from "react-icons/fi";
 import { TbBrain } from "react-icons/tb";
 import TimerTool from "./studyroom/tools/TimerTool";
-import TaskTool, { type StudyTask } from "./studyroom/tools/TaskTool";
+import TaskTool from "./studyroom/tools/TaskTool";
 import NotesTool from "./studyroom/tools/NotesTool";
+import CalendarTool from "./studyroom/tools/CalendarTool";
 import FoxAiTool from "./studyroom/tools/FoxAiTool";
 import MusicTool from "./studyroom/tools/MusicTool";
-import { makeId } from "./studyroom/utils";
 
 type User = {
   name: string;
@@ -57,20 +57,19 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
   // Timer state
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
-  const [mode, setMode] = useState<"focus" | "break">("focus");
+  const [restMinutes, setRestMinutes] = useState(15);
+  const [mode, setMode] = useState<"focus" | "break" | "rest">("focus");
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [running, setRunning] = useState(false);
 
   // Task state
-  const [taskText, setTaskText] = useState("");
-  const [tasks, setTasks] = useState<StudyTask[]>([]);
-
   // Notes state
-  const [notes, setNotes] = useState("");
 
   const totalSeconds = useMemo(() => {
-    return (mode === "focus" ? focusMinutes : breakMinutes) * 60;
-  }, [mode, focusMinutes, breakMinutes]);
+    if (mode === "focus") return focusMinutes * 60;
+    if (mode === "break") return breakMinutes * 60;
+    return restMinutes * 60;
+  }, [mode, focusMinutes, breakMinutes, restMinutes]);
 
   const progressValue = useMemo(() => {
     if (totalSeconds <= 0) return 0;
@@ -178,61 +177,11 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
       </Flex>
 
       <Box px={5} py={5} color="white">
-        {activeTool === "timer" && (
-          <TimerTool
-            mode={mode}
-            setMode={setMode}
-            focusMinutes={focusMinutes}
-            setFocusMinutes={setFocusMinutes}
-            breakMinutes={breakMinutes}
-            setBreakMinutes={setBreakMinutes}
-            secondsLeft={secondsLeft}
-            running={running}
-            progressValue={progressValue}
-            onStart={() => setRunning(true)}
-            onPause={() => setRunning(false)}
-            onReset={() => {
-              setRunning(false);
-              setSecondsLeft(totalSeconds);
-            }}
-          />
-        )}
-
-        {activeTool === "task" && (
-          <TaskTool
-            taskText={taskText}
-            setTaskText={setTaskText}
-            tasks={tasks}
-            onAddTask={() => {
-              const text = taskText.trim();
-              if (!text) return;
-              setTasks((prev) => [
-                { id: makeId(), text, done: false },
-                ...prev,
-              ]);
-              setTaskText("");
-            }}
-            onToggleTask={(id) =>
-              setTasks((prev) =>
-                prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)),
-              )
-            }
-            onDeleteTask={(id) =>
-              setTasks((prev) => prev.filter((t) => t.id !== id))
-            }
-            onClear={() => setTasks([])}
-          />
-        )}
-
-        {activeTool === "notes" && (
-          <NotesTool notes={notes} setNotes={setNotes} />
-        )}
+        {activeTool === "task" && <TaskTool />}
 
         {activeTool === "foxai" && <FoxAiTool />}
 
-        {(activeTool === "video" ||
-          activeTool === "image" ||
-          activeTool === "calendar") && (
+        {(activeTool === "video" || activeTool === "image") && (
           <Stack gap={2}>
             <Text fontSize="sm" color="whiteAlpha.900">
               {panelTitle} tool coming next.
@@ -407,7 +356,37 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
         top={{ base: 20, md: 24 }}
         zIndex={2}
       >
-        {activeTool === "media" ? <MusicTool /> : panel}
+        {activeTool === "media" ? (
+          <MusicTool onClose={() => setActiveTool("timer")} />
+        ) : activeTool === "timer" ? (
+          <TimerTool
+            mode={mode}
+            setMode={setMode}
+            focusMinutes={focusMinutes}
+            setFocusMinutes={setFocusMinutes}
+            breakMinutes={breakMinutes}
+            setBreakMinutes={setBreakMinutes}
+            restMinutes={restMinutes}
+            setRestMinutes={setRestMinutes}
+            secondsLeft={secondsLeft}
+            running={running}
+            progressValue={progressValue}
+            onStart={() => setRunning(true)}
+            onPause={() => setRunning(false)}
+            onReset={() => {
+              setRunning(false);
+              setSecondsLeft(totalSeconds);
+            }}
+          />
+        ) : activeTool === "task" ? (
+          <TaskTool />
+        ) : activeTool === "notes" ? (
+          <NotesTool onClose={() => setActiveTool("timer")} />
+        ) : activeTool === "calendar" ? (
+          <CalendarTool onClose={() => setActiveTool("timer")} />
+        ) : (
+          panel
+        )}
       </Box>
     </Box>
   );

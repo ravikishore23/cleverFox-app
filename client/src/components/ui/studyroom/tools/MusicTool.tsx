@@ -11,15 +11,19 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FiChevronLeft,
-  FiChevronRight,
-  FiMinus,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
+import {
+  FiSkipBack,
+  FiSkipForward,
   FiMoreHorizontal,
   FiPause,
   FiPlay,
-  FiPlus,
   FiRefreshCw,
   FiX,
 } from "react-icons/fi";
@@ -141,20 +145,98 @@ const BUILTIN_TRACKS: Track[] = [
   },
 ];
 
-export default function MusicTool() {
+type WidgetPos = { x: number; y: number };
+
+const POS_STORAGE_KEY = "cleverfox.musicWidget.pos.v1";
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+type MusicToolProps = {
+  onClose?: () => void;
+};
+
+export default function MusicTool({ onClose }: MusicToolProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const widgetRef = useRef<HTMLDivElement | null>(null);
   const youTubePlayerRef = useRef<YouTubePlayer | null>(null);
+  const pendingYouTubePlayRef = useRef(false);
   const youTubeIframeId = "cleverfox-youtube-embed";
   const [selectedId, setSelectedId] = useState<string>(BUILTIN_TRACKS[0]?.id);
   const [playing, setPlaying] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
-  const [minimized, setMinimized] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [pos, setPos] = useState<WidgetPos>(() => {
+    if (typeof window === "undefined") return { x: 24, y: 96 };
+    try {
+      const raw = window.localStorage.getItem(POS_STORAGE_KEY);
+      if (!raw) return { x: 24, y: 96 };
+      const parsed = JSON.parse(raw) as Partial<WidgetPos>;
+      if (typeof parsed.x !== "number" || typeof parsed.y !== "number") {
+        return { x: 24, y: 96 };
+      }
+      return { x: parsed.x, y: parsed.y };
+    } catch {
+      return { x: 24, y: 96 };
+    }
+  });
   const [spotifyToken, setSpotifyToken] = useState<SpotifyToken | null>(null);
   const [spotifyUser, setSpotifyUser] = useState<SpotifyMe | null>(null);
   const [statusMessage, setStatusMessage] = useState<StatusMessage | null>(
     null,
   );
+
+  function clampToViewport(next: WidgetPos): WidgetPos {
+    if (typeof window === "undefined") return next;
+    const padding = 12;
+    const rect = widgetRef.current?.getBoundingClientRect();
+    const width = rect?.width ?? 380;
+    const height = rect?.height ?? 220;
+
+    const maxX = Math.max(padding, window.innerWidth - width - padding);
+    const maxY = Math.max(padding, window.innerHeight - height - padding);
+    return {
+      x: clamp(next.x, padding, maxX),
+      y: clamp(next.y, padding, maxY),
+    };
+  }
+
+  function onDragStart(e: ReactPointerEvent<HTMLDivElement>) {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest("button, a, input, textarea, select, [data-no-drag]")) {
+      return;
+    }
+
+    // Only enforce mouse left-click; touch/pen can report different button values.
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    e.preventDefault();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // ignore
+    }
+
+    const start = { x: e.clientX, y: e.clientY };
+    const base = pos;
+
+    const onMove = (ev: PointerEvent) => {
+      const dx = ev.clientX - start.x;
+      const dy = ev.clientY - start.y;
+      setPos(clampToViewport({ x: base.x + dx, y: base.y + dy }));
+    };
+
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      setPos((p) => clampToViewport(p));
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  }
 
   const selected = useMemo(() => {
     return BUILTIN_TRACKS.find((t) => t.id === selectedId) ?? BUILTIN_TRACKS[0];
@@ -239,6 +321,14 @@ export default function MusicTool() {
           events: {
             onReady: () => {
               setStatusMessage(null);
+              if (pendingYouTubePlayRef.current) {
+                pendingYouTubePlayRef.current = false;
+                try {
+                  player.playVideo();
+                } catch {
+                  // ignore
+                }
+              }
             },
             onStateChange: (event) => {
               // 1 = PLAYING, 2 = PAUSED, 0 = ENDED
@@ -323,12 +413,14 @@ export default function MusicTool() {
   );
 
   function prev() {
+    if (playlist.length <= 0) return;
     const nextIndex = (selectedIndex - 1 + playlist.length) % playlist.length;
     setSelectedId(playlist[nextIndex]!.id);
     if (playing) start(playlist[nextIndex]!.url);
   }
 
   function next() {
+    if (playlist.length <= 0) return;
     const nextIndex = (selectedIndex + 1) % playlist.length;
     setSelectedId(playlist[nextIndex]!.id);
     if (playing) start(playlist[nextIndex]!.url);
@@ -399,6 +491,16 @@ export default function MusicTool() {
   }
 
   function youTubeTogglePlay() {
+    if (!expanded) {
+      pendingYouTubePlayRef.current = true;
+      setExpanded(true);
+      setStatusMessage({
+        kind: "info",
+        text: "Opening YouTube player…",
+      });
+      return;
+    }
+
     const player = youTubePlayerRef.current;
     if (!player) {
       setStatusMessage({ kind: "info", text: "YouTube player is loading…" });
@@ -424,225 +526,234 @@ export default function MusicTool() {
     setStatusMessage(null);
   }
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos));
+    } catch {
+      // ignore
+    }
+  }, [pos]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onResize = () => setPos((p) => clampToViewport(p));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const id = window.requestAnimationFrame(() => {
+      setPos((p) => clampToViewport(p));
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
   return (
     <Box
-      w={{ base: "calc(100vw - 120px)", sm: "420px" }}
-      maxW="520px"
-      borderRadius="14px"
-      overflow="hidden"
-      boxShadow="0 18px 50px rgba(0,0,0,0.35)"
-      borderWidth="1px"
-      borderColor="blackAlpha.300"
-      bg="#0B0B0C"
+      ref={widgetRef}
+      position="fixed"
+      left={`${pos.x}px`}
+      top={`${pos.y}px`}
+      zIndex={3}
+      w={{ base: "calc(100vw - 24px)", sm: "380px" }}
+      maxW="420px"
     >
-      {/* Title bar */}
-      <Flex
-        align="center"
-        justify="space-between"
-        px={4}
-        py={2}
-        bg="#121214"
-        borderBottomWidth="1px"
-        borderBottomColor="whiteAlpha.200"
+      {/* Purple Spotify-like floating widget */}
+      <Box
+        borderRadius="14px"
+        bg="#5C57C8"
+        p={2.5}
+        color="white"
+        position="relative"
+        boxShadow="0 18px 50px rgba(0,0,0,0.35)"
+        borderWidth="1px"
+        borderColor="blackAlpha.300"
+        onPointerDown={onDragStart}
+        cursor="grab"
+        touchAction="none"
       >
-        <Text fontSize="sm" color="white" fontWeight="700">
-          Music
-        </Text>
-        <HStack gap={1}>
-          <IconButton
-            aria-label="Minimize"
-            size="xs"
-            variant="ghost"
-            color="white"
-            _hover={{ bg: "whiteAlpha.200" }}
-            onClick={() => setMinimized((v) => !v)}
-          >
-            <Icon as={FiMinus} />
-          </IconButton>
-          <IconButton
-            aria-label="Close"
-            size="xs"
-            variant="ghost"
-            color="white"
-            _hover={{ bg: "whiteAlpha.200" }}
-            onClick={stop}
-          >
-            <Icon as={FiX} />
-          </IconButton>
-        </HStack>
-      </Flex>
+        {/* Drag handle + actions (kept subtle) */}
+        <Flex align="center" justify="space-between" mb={2}>
+          <HStack gap={2} userSelect="none" opacity={0.95}>
+            <Box w="36px" h="5px" borderRadius="full" bg="whiteAlpha.600" />
+            <Text fontSize="xs" fontWeight="700" color="whiteAlpha.900">
+              Music
+            </Text>
+          </HStack>
 
-      {minimized ? (
-        <Box px={4} py={4}>
-          <Text fontSize="sm" color="whiteAlpha.800">
-            Minimized
-          </Text>
-        </Box>
-      ) : (
-        <Box px={4} py={4}>
-          {/* Purple Spotify-like preview */}
+          <HStack gap={1}>
+            <IconButton
+              aria-label={expanded ? "Hide" : "More"}
+              size="xs"
+              variant="ghost"
+              color="white"
+              _hover={{ bg: "whiteAlpha.200" }}
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <Icon as={FiMoreHorizontal} />
+            </IconButton>
+            <IconButton
+              aria-label="Close"
+              size="xs"
+              variant="ghost"
+              color="white"
+              _hover={{ bg: "whiteAlpha.200" }}
+              onClick={() => {
+                pendingYouTubePlayRef.current = false;
+                setExpanded(false);
+                stop();
+                onClose?.();
+              }}
+            >
+              <Icon as={FiX} />
+            </IconButton>
+          </HStack>
+        </Flex>
+
+        <Flex gap={3} align="flex-start">
           <Box
-            borderRadius="14px"
-            bg="#5C57C8"
-            p={3}
-            color="white"
-            position="relative"
+            w="72px"
+            h="72px"
+            borderRadius="12px"
+            bg="whiteAlpha.200"
+            overflow="hidden"
           >
-            <Flex gap={3} align="flex-start">
+            <Image
+              src="/music-fox.png"
+              alt="Clever Fox"
+              w="full"
+              h="full"
+              objectFit="cover"
+            />
+          </Box>
+
+          <Box flex="1" minW={0}>
+            <Flex align="center" justify="space-between" mb={2}>
+              <Text fontSize="sm" fontWeight="800">
+                clever Fox
+              </Text>
+              <HStack gap={2}>
+                <Icon as={FaSpotify} boxSize={5} />
+              </HStack>
+            </Flex>
+
+            {/* Centered song list block (scroll, transparent scrollbar) */}
+            <Flex justify="center">
               <Box
-                w="86px"
-                h="86px"
-                borderRadius="12px"
-                bg="whiteAlpha.200"
-                overflow="hidden"
+                w="full"
+                maxW="260px"
+                maxH="72px"
+                overflowY="auto"
+                pr={1}
+                css={{
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "rgba(255,255,255,0.45) transparent",
+                  "&::-webkit-scrollbar": { width: "6px" },
+                  "&::-webkit-scrollbar-track": { background: "transparent" },
+                  "&::-webkit-scrollbar-thumb": {
+                    background: "rgba(255,255,255,0.45)",
+                    borderRadius: "999px",
+                  },
+                  "&::-webkit-scrollbar-thumb:hover": {
+                    background: "rgba(255,255,255,0.60)",
+                  },
+                }}
               >
-                <Image
-                  src="/fox-logo.png"
-                  alt="Clever Fox"
-                  w="full"
-                  h="full"
-                  objectFit="cover"
-                />
-              </Box>
-
-              <Box flex="1" minW={0}>
-                <Flex align="center" justify="space-between" mb={2}>
-                  <Text fontSize="sm" fontWeight="800">
-                    clever Fox
-                  </Text>
-                  <HStack gap={2}>
-                    <Icon as={FaSpotify} boxSize={5} />
-                    {spotifyToken ? (
-                      <Text fontSize="xs" color="whiteAlpha.900">
-                        {spotifyUser?.display_name
-                          ? spotifyUser.display_name
-                          : "Connected"}
-                      </Text>
-                    ) : (
-                      <Text fontSize="xs" color="whiteAlpha.900">
-                        Not connected
-                      </Text>
-                    )}
-                  </HStack>
-                </Flex>
-
                 <Stack gap={1} fontSize="xs" color="whiteAlpha.900">
                   {playlist.map((t, idx) => (
-                    <Box
+                    <Flex
                       key={t.id}
                       as="button"
                       onClick={() => setSelectedId(t.id)}
-                      textAlign="left"
+                      align="center"
+                      gap={3}
                       opacity={t.id === selectedId ? 1 : 0.85}
                       _hover={{ opacity: 1 }}
-                      display="flex"
-                      gap={2}
+                      textAlign="left"
                     >
-                      <Text as="span" w="14px" opacity={0.9}>
+                      <Text w="14px" opacity={0.85}>
                         {idx + 1}
                       </Text>
                       <Text
-                        as="span"
+                        flex="1"
                         lineClamp={1}
                         title={t.title}
                         fontWeight={t.id === selectedId ? "800" : "600"}
                       >
                         {t.title}
                       </Text>
-                    </Box>
+                    </Flex>
                   ))}
                 </Stack>
               </Box>
             </Flex>
-
-            <Button
-              size="xs"
-              mt={3}
-              borderRadius="10px"
-              bg="blackAlpha.400"
-              color="white"
-              _hover={{ bg: "blackAlpha.500" }}
-              onClick={() => {
-                if (savedSpotify) {
-                  void spotifyPlay();
-                  return;
-                }
-                if (youTubeEmbedUrlWithApi) return youTubeTogglePlay();
-                void start(selected?.url ?? "");
-              }}
-            >
-              Preview
-            </Button>
-
-            <HStack gap={2} mt={3} justify="space-between">
-              <HStack gap={1}>
-                <IconButton
-                  aria-label="Previous"
-                  size="xs"
-                  variant="ghost"
-                  color="white"
-                  _hover={{ bg: "whiteAlpha.200" }}
-                  onClick={prev}
-                >
-                  <Icon as={FiChevronLeft} />
-                </IconButton>
-                <IconButton
-                  aria-label="Next"
-                  size="xs"
-                  variant="ghost"
-                  color="white"
-                  _hover={{ bg: "whiteAlpha.200" }}
-                  onClick={next}
-                >
-                  <Icon as={FiChevronRight} />
-                </IconButton>
-                <IconButton
-                  aria-label="Add"
-                  size="xs"
-                  variant="ghost"
-                  color="white"
-                  _hover={{ bg: "whiteAlpha.200" }}
-                >
-                  <Icon as={FiPlus} />
-                </IconButton>
-                <IconButton
-                  aria-label="More"
-                  size="xs"
-                  variant="ghost"
-                  color="white"
-                  _hover={{ bg: "whiteAlpha.200" }}
-                >
-                  <Icon as={FiMoreHorizontal} />
-                </IconButton>
-              </HStack>
-
-              <IconButton
-                aria-label={playing ? "Pause" : "Play"}
-                size="sm"
-                borderRadius="999px"
-                bg="blackAlpha.500"
-                color="white"
-                _hover={{ bg: "blackAlpha.600" }}
-                onClick={() => {
-                  if (savedSpotify) {
-                    void (playing ? spotifyDoPause() : spotifyPlay());
-                    return;
-                  }
-                  if (youTubeEmbedUrlWithApi) return youTubeTogglePlay();
-                  togglePlay();
-                }}
-              >
-                <Icon as={playing ? FiPause : FiPlay} />
-              </IconButton>
-            </HStack>
           </Box>
+        </Flex>
 
+        <Flex mt={3} justify="center" align="center" gap={2}>
+          <IconButton
+            aria-label="Previous"
+            size="xs"
+            variant="ghost"
+            color="white"
+            _hover={{ bg: "whiteAlpha.200" }}
+            onClick={prev}
+          >
+            <Icon as={FiSkipBack} />
+          </IconButton>
+
+          <IconButton
+            aria-label={playing ? "Pause" : "Play"}
+            size="sm"
+            borderRadius="999px"
+            color="white"
+            bg="transparent"
+            _hover={{ bg: "whiteAlpha.200" }}
+            onClick={() => {
+              if (savedSpotify) {
+                void (playing ? spotifyDoPause() : spotifyPlay());
+                return;
+              }
+              if (youTubeEmbedUrlWithApi) return youTubeTogglePlay();
+              togglePlay();
+            }}
+          >
+            <Icon as={playing ? FiPause : FiPlay} />
+          </IconButton>
+
+          <IconButton
+            aria-label="Next"
+            size="xs"
+            variant="ghost"
+            color="white"
+            _hover={{ bg: "whiteAlpha.200" }}
+            onClick={next}
+          >
+            <Icon as={FiSkipForward} />
+          </IconButton>
+        </Flex>
+      </Box>
+
+      {/* Expanded panel (hidden by default so widget doesn't block UI) */}
+      {expanded ? (
+        <Box
+          mt={3}
+          borderRadius="14px"
+          overflow="hidden"
+          boxShadow="0 18px 50px rgba(0,0,0,0.35)"
+          borderWidth="1px"
+          borderColor="blackAlpha.300"
+          bg="#0B0B0C"
+          p={4}
+        >
           {/* URL input + Save */}
-          <HStack gap={3} mt={4}>
+          <HStack gap={3}>
             <Input
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              placeholder="Enter YouTube, Spotify, or Apple Music URL here"
+              placeholder="Enter YouTube or Spotify URL here"
               h="40px"
               borderRadius="10px"
               bg="#1A1A1D"
@@ -702,7 +813,7 @@ export default function MusicTool() {
           ) : null}
 
           <HStack mt={4} justify="space-between" flexWrap="wrap" gap={2}>
-            <HStack gap={2}>
+            <HStack gap={3} flexWrap="wrap">
               <Button
                 size="sm"
                 borderRadius="10px"
@@ -727,6 +838,12 @@ export default function MusicTool() {
                 >
                   Disconnect
                 </Button>
+              ) : null}
+
+              {spotifyToken && spotifyUser?.display_name ? (
+                <Text fontSize="xs" color="whiteAlpha.700">
+                  Connected as {spotifyUser.display_name}
+                </Text>
               ) : null}
             </HStack>
 
@@ -799,7 +916,7 @@ export default function MusicTool() {
             </Box>
           ) : null}
         </Box>
-      )}
+      ) : null}
 
       <audio ref={audioRef} />
     </Box>

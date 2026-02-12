@@ -5,6 +5,7 @@ import { healthRouter } from "./routes/health.js";
 import { spotifyRouter } from "./routes/spotify.js";
 import { aiRouter } from "./routes/ai/chat.js";
 import { tasksRouter } from "./routes/tasks.js";
+import { notesRouter } from "./routes/notes.js";
 import { errorHandler } from "./middleware/error.js";
 const app = express();
 function buildAllowedOrigins() {
@@ -45,6 +46,7 @@ app.use(healthRouter);
 app.use(spotifyRouter);
 app.use(aiRouter);
 app.use(tasksRouter);
+app.use(notesRouter);
 app.use(errorHandler);
 app.listen(env.port, () => {
     console.log(`Backend listening on http://localhost:${env.port}`);

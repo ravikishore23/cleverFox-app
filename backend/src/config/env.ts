@@ -11,6 +11,7 @@ function readRequired(name: string): string {
 export const env = {
   port: Number(process.env.PORT ?? 3001),
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://127.0.0.1:5173",
+  mongodbUri: process.env.MONGODB_URI ?? process.env.MONGODB_URL,
   spotifyClientId: process.env.SPOTIFY_CLIENT_ID,
   spotifyClientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   spotifyRedirectUri: process.env.SPOTIFY_REDIRECT_URI,
