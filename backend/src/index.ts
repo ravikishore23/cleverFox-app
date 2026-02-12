@@ -28,7 +28,7 @@ function buildAllowedOrigins(): Set<string> {
 }
 
 const allowedOrigins = buildAllowedOrigins();
-const devLoopbackOrigin = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
+const devLoopbackOrigin = /^http:\/\/(localhost|127\.0\.0\.1|\[::1\]):\d+$/;
 // When Vite runs with `--host`, the browser origin is often a LAN IP like
 // http://192.168.1.20:5173, which otherwise triggers CORS “Failed to fetch”.
 const devLanOrigin =

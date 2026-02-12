@@ -1,6 +1,10 @@
 import { Router, type RequestHandler } from "express";
 import { connectMongo } from "../db/mongo.js";
-import { TaskModel, type TaskStatus } from "../models/Task.js";
+import {
+  TaskModel,
+  type TaskPriority,
+  type TaskStatus,
+} from "../models/Task.js";
 
 export const tasksRouter = Router();
 
@@ -18,6 +22,32 @@ function parseOptionalDate(input: unknown): Date | undefined {
   const d = new Date(s);
   if (!Number.isFinite(d.getTime())) throw new Error("Invalid date");
   return d;
+}
+
+function parseOptionalString(input: unknown): string | undefined {
+  if (input === undefined) return undefined;
+  if (input === null) return undefined;
+  const s = String(input).trim();
+  if (!s) return undefined;
+  return s;
+}
+
+function parseOptionalPriority(input: unknown): TaskPriority | undefined {
+  if (input === undefined) return undefined;
+  if (input === null) return undefined;
+  const s = String(input).trim();
+  if (!s) return undefined;
+  if (s === "low" || s === "medium" || s === "high") return s;
+  throw new Error("Invalid priority");
+}
+
+function parseOptionalNumber(input: unknown): number | undefined {
+  if (input === undefined) return undefined;
+  if (input === null) return undefined;
+  if (input === "") return undefined;
+  const n = Number(input);
+  if (!Number.isFinite(n)) throw new Error("Invalid number");
+  return n;
 }
 
 function recomputeFromSubTasks(task: any) {
@@ -46,6 +76,12 @@ function toTaskDto(doc: any) {
   return {
     id: String(doc._id),
     title: doc.title,
+    description: doc.description ?? null,
+    priority: doc.priority ?? null,
+    reminderMinutesBefore: doc.reminderMinutesBefore ?? null,
+    label: doc.label ?? null,
+    deadlineAt: doc.deadlineAt ?? null,
+    location: doc.location ?? null,
     status: doc.status,
     progress: doc.progress,
     dueAt: doc.dueAt ?? null,
@@ -104,6 +140,40 @@ tasksRouter.post(
       return res.status(400).json({ ok: false, error: "Invalid dueAt" });
     }
 
+    const descriptionRaw = req.body?.description;
+    const priorityRaw = req.body?.priority;
+    const reminderRaw = req.body?.reminderMinutesBefore;
+    const labelRaw = req.body?.label;
+    const deadlineAtRaw = req.body?.deadlineAt;
+    const locationRaw = req.body?.location;
+
+    let description: string | undefined;
+    let priority: TaskPriority | undefined;
+    let reminderMinutesBefore: number | undefined;
+    let label: string | undefined;
+    let deadlineAt: Date | undefined;
+    let location: string | undefined;
+
+    try {
+      description =
+        descriptionRaw === null
+          ? undefined
+          : parseOptionalString(descriptionRaw);
+      priority = parseOptionalPriority(priorityRaw);
+      reminderMinutesBefore = parseOptionalNumber(reminderRaw);
+      if (
+        reminderMinutesBefore !== undefined &&
+        (reminderMinutesBefore < 0 || reminderMinutesBefore > 365 * 24 * 60)
+      ) {
+        throw new Error("Invalid reminderMinutesBefore");
+      }
+      label = parseOptionalString(labelRaw);
+      deadlineAt = parseOptionalDate(deadlineAtRaw);
+      location = parseOptionalString(locationRaw);
+    } catch {
+      return res.status(400).json({ ok: false, error: "Invalid task fields" });
+    }
+
     const subTasksRaw = req.body?.subTasks;
     const subTasks = Array.isArray(subTasksRaw)
       ? subTasksRaw
@@ -117,7 +187,17 @@ tasksRouter.post(
           }))
       : [];
 
-    const created = await TaskModel.create({ title, dueAt, subTasks });
+    const created = await TaskModel.create({
+      title,
+      description: description ?? null,
+      priority: priority ?? null,
+      reminderMinutesBefore: reminderMinutesBefore ?? null,
+      label: label ?? null,
+      deadlineAt: deadlineAt ?? null,
+      location: location ?? null,
+      dueAt,
+      subTasks,
+    });
     recomputeFromSubTasks(created);
     await created.save();
 
@@ -132,9 +212,15 @@ tasksRouter.patch(
 
     const id = String(req.params.id);
     const titleRaw = req.body?.title;
+    const descriptionRaw = req.body?.description;
     const statusRaw = req.body?.status;
     const progressRaw = req.body?.progress;
     const dueAtRaw = req.body?.dueAt;
+    const priorityRaw = req.body?.priority;
+    const reminderRaw = req.body?.reminderMinutesBefore;
+    const labelRaw = req.body?.label;
+    const deadlineAtRaw = req.body?.deadlineAt;
+    const locationRaw = req.body?.location;
     const subTaskAddRaw = req.body?.subTaskAdd;
     const subTaskToggleRaw = req.body?.subTaskToggle;
     const subTaskDeleteRaw = req.body?.subTaskDelete;
@@ -149,12 +235,61 @@ tasksRouter.patch(
       task.title = title;
     }
 
+    if (descriptionRaw !== undefined) {
+      if (descriptionRaw === null) {
+        task.description = null as any;
+      } else {
+        const description = String(descriptionRaw).trim();
+        task.description = description ? description : null;
+      }
+    }
+
     if (dueAtRaw !== undefined) {
       try {
         task.dueAt = parseOptionalDate(dueAtRaw);
       } catch {
         return res.status(400).json({ ok: false, error: "Invalid dueAt" });
       }
+    }
+
+    if (priorityRaw !== undefined) {
+      try {
+        task.priority = parseOptionalPriority(priorityRaw) ?? null;
+      } catch {
+        return res.status(400).json({ ok: false, error: "Invalid priority" });
+      }
+    }
+
+    if (reminderRaw !== undefined) {
+      try {
+        const v = parseOptionalNumber(reminderRaw);
+        if (v !== undefined && (v < 0 || v > 365 * 24 * 60)) {
+          return res
+            .status(400)
+            .json({ ok: false, error: "Invalid reminderMinutesBefore" });
+        }
+        task.reminderMinutesBefore = v ?? null;
+      } catch {
+        return res
+          .status(400)
+          .json({ ok: false, error: "Invalid reminderMinutesBefore" });
+      }
+    }
+
+    if (labelRaw !== undefined) {
+      task.label = parseOptionalString(labelRaw) ?? null;
+    }
+
+    if (deadlineAtRaw !== undefined) {
+      try {
+        task.deadlineAt = parseOptionalDate(deadlineAtRaw) ?? null;
+      } catch {
+        return res.status(400).json({ ok: false, error: "Invalid deadlineAt" });
+      }
+    }
+
+    if (locationRaw !== undefined) {
+      task.location = parseOptionalString(locationRaw) ?? null;
     }
 
     if (subTaskAddRaw !== undefined) {

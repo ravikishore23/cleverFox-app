@@ -20,3 +20,13 @@ body {
     "Segoe UI Emoji";
   background: #ffffff;
 }
+
+/* Mantine DatePickerInput: keep text readable but not harsh black. */
+.mantine-DatePickerInput-input {
+  color: rgba(0, 0, 0, 0.82) !important;
+}
+
+.mantine-DatePickerInput-input::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1;
+}

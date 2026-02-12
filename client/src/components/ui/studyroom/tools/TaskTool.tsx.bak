@@ -1,0 +1,2031 @@
+import {
+  Box,
+  Button,
+  Flex,
+  HStack,
+  Icon,
+  IconButton,
+  Input,
+  SimpleGrid,
+  Stack,
+  Text,
+  Textarea,
+} from "@chakra-ui/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  FiBarChart2,
+  FiBell,
+  FiCheck,
+  FiCalendar,
+  FiCheckCircle,
+  FiClock,
+  FiClipboard,
+  FiFlag,
+  FiMaximize2,
+  FiMinimize2,
+  FiMoreHorizontal,
+  FiPlus,
+  FiTrash2,
+  FiX,
+} from "react-icons/fi";
+
+type TaskStatus = "pending" | "inProgress" | "completed";
+
+type TaskPriority = "low" | "medium" | "high";
+
+type SubTaskDto = {
+  id: string;
+  title: string;
+  done: boolean;
+  createdAt: string;
+  doneAt: string | null;
+};
+
+type TaskDto = {
+  id: string;
+  title: string;
+  description?: string | null;
+  priority?: TaskPriority | null;
+  reminderMinutesBefore?: number | null;
+  label?: string | null;
+  deadlineAt?: string | null;
+  location?: string | null;
+  status: TaskStatus;
+  progress: number;
+  dueAt: string | null;
+  completedAt: string | null;
+  subTasks: SubTaskDto[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+const API_BASE =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+  "http://localhost:3001";
+
+async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const url = `${API_BASE}${path}`;
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      ...init,
+      headers: {
+        "content-type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    throw new Error(
+      `Failed to fetch ${url}. Start the backend (npm run dev:api). (${message})`,
+    );
+  }
+
+  let data: any = null;
+  try {
+    data = await res.json();
+  } catch {
+    // Non-JSON response (or empty body)
+  }
+
+  if (!res.ok) throw new Error(data?.error ?? `Request failed (${res.status})`);
+  return data as T;
+}
+
+export default function TaskTool() {
+  const [tasks, setTasks] = useState<TaskDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [view, setView] = useState<"task" | "graph" | "completed">("task");
+  const [taskTab, setTaskTab] = useState<"tasks" | "today" | "completed">(
+    "tasks",
+  );
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newDueDate, setNewDueDate] = useState("");
+
+  const [newPriority, setNewPriority] = useState<TaskPriority | "">("");
+  const [newReminder, setNewReminder] = useState<number | "">("");
+  const [newLabel, setNewLabel] = useState("");
+  const [newDeadline, setNewDeadline] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [priorityOpen, setPriorityOpen] = useState(false);
+  const [reminderOpen, setReminderOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const addTitleRef = useRef<HTMLInputElement | null>(null);
+  const dueDateInputRef = useRef<HTMLInputElement | null>(null);
+  const deadlineInputRef = useRef<HTMLInputElement | null>(null);
+  const priorityWrapRef = useRef<HTMLDivElement | null>(null);
+  const reminderWrapRef = useRef<HTMLDivElement | null>(null);
+  const moreWrapRef = useRef<HTMLDivElement | null>(null);
+
+  function dateValueToLocalIso(value: string): string | null {
+    const v = value.trim();
+    if (!v) return null;
+    const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(v);
+    if (!m) return null;
+    const year = Number(m[1]);
+    const monthIndex = Number(m[2]) - 1;
+    const day = Number(m[3]);
+    const d = new Date(year, monthIndex, day);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toISOString();
+  }
+
+  function openNativeDatePicker(ref: React.RefObject<HTMLInputElement | null>) {
+    const el = ref.current;
+    if (!el) return;
+    (el as any).showPicker?.();
+    el.focus();
+    el.click();
+  }
+
+  useEffect(() => {
+    if (!priorityOpen && !reminderOpen && !moreOpen) return;
+    const onMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (!target) return;
+
+      if (priorityOpen && priorityWrapRef.current?.contains(target)) return;
+      if (reminderOpen && reminderWrapRef.current?.contains(target)) return;
+      if (moreOpen && moreWrapRef.current?.contains(target)) return;
+
+      setPriorityOpen(false);
+      setReminderOpen(false);
+      setMoreOpen(false);
+    };
+    window.addEventListener("mousedown", onMouseDown);
+    return () => window.removeEventListener("mousedown", onMouseDown);
+  }, [priorityOpen, reminderOpen, moreOpen]);
+
+  function openAddModal() {
+    setError(null);
+    setNewTitle("");
+    setNewDescription("");
+    setNewDueDate("");
+    setNewPriority("");
+    setNewReminder("");
+    setNewLabel("");
+    setNewDeadline("");
+    setNewLocation("");
+    setPriorityOpen(false);
+    setReminderOpen(false);
+    setMoreOpen(false);
+    setAdding(true);
+    window.setTimeout(() => addTitleRef.current?.focus(), 0);
+  }
+
+  function closeAddModal() {
+    setAdding(false);
+    setPriorityOpen(false);
+    setReminderOpen(false);
+    setMoreOpen(false);
+  }
+
+  async function refresh() {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await apiJson<{ ok: true; tasks: TaskDto[] }>("/tasks");
+      setTasks(data.tasks);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  useEffect(() => {
+    if (!adding) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeAddModal();
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "enter") {
+        void createTask();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [adding, newTitle, newDescription, newDueDate, newDeadline]);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isFullscreen]);
+
+  const stats = useMemo(() => {
+    const total = tasks.length;
+    const completed = tasks.filter((t) => t.status === "completed").length;
+    const inProgress = tasks.filter((t) => t.status === "inProgress").length;
+    const pending = tasks.filter((t) => t.status === "pending").length;
+    return { total, completed, inProgress, pending };
+  }, [tasks]);
+
+  const completionRate = useMemo(() => {
+    if (stats.total === 0) return 0;
+    return Math.round((stats.completed / stats.total) * 100);
+  }, [stats.completed, stats.total]);
+
+  const activeTasks = useMemo(
+    () => tasks.filter((t) => t.status !== "completed"),
+    [tasks],
+  );
+
+  const completedTasks = useMemo(
+    () => tasks.filter((t) => t.status === "completed"),
+    [tasks],
+  );
+
+  const todayBounds = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = new Date(start);
+    end.setDate(start.getDate() + 1);
+    return { startMs: start.getTime(), endMs: end.getTime() };
+  }, []);
+
+  function isDueToday(dueAt: string | null | undefined) {
+    if (!dueAt) return false;
+    const t = new Date(dueAt).getTime();
+    if (!Number.isFinite(t)) return false;
+    return t >= todayBounds.startMs && t < todayBounds.endMs;
+  }
+
+  function isOverdue(dueAt: string | null | undefined) {
+    if (!dueAt) return false;
+    const t = new Date(dueAt).getTime();
+    if (!Number.isFinite(t)) return false;
+    return t < todayBounds.startMs;
+  }
+
+  const analytics = useMemo(() => {
+    const now = Date.now();
+    const twoDays = 2 * 24 * 60 * 60 * 1000;
+
+    const active = tasks.filter((t) => t.status !== "completed");
+    const overdue = active.filter((t) => {
+      const d = t.dueAt ? new Date(t.dueAt).getTime() : Number.NaN;
+      return Number.isFinite(d) && d < now;
+    }).length;
+    const dueSoon = active.filter((t) => {
+      const d = t.dueAt ? new Date(t.dueAt).getTime() : Number.NaN;
+      return Number.isFinite(d) && d >= now && d <= now + twoDays;
+    }).length;
+
+    const completed = tasks.filter((t) => t.status === "completed");
+    const durations = completed
+      .map((t) => {
+        const created = new Date(t.createdAt).getTime();
+        const done = t.completedAt
+          ? new Date(t.completedAt).getTime()
+          : Number.NaN;
+        if (!Number.isFinite(created) || !Number.isFinite(done)) return null;
+        if (done <= created) return null;
+        return done - created;
+      })
+      .filter((v): v is number => typeof v === "number");
+
+    const avgCompletionMs =
+      durations.length > 0
+        ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+        : null;
+
+    return {
+      overdue,
+      dueSoon,
+      avgCompletionMs,
+      completedWithTime: durations.length,
+    };
+  }, [tasks]);
+
+  async function createTask() {
+    const title = newTitle.trim();
+    if (!title) return;
+
+    setError(null);
+    const dueAt = dateValueToLocalIso(newDueDate);
+    const description = newDescription.trim() || undefined;
+    const priority = (newPriority || undefined) as TaskPriority | undefined;
+    const reminderMinutesBefore =
+      newReminder === "" ? undefined : Number(newReminder);
+    const label = newLabel.trim() || undefined;
+    const deadlineAt = dateValueToLocalIso(newDeadline) ?? undefined;
+    const location = newLocation.trim() || undefined;
+
+    setAdding(false);
+    setNewTitle("");
+    setNewDescription("");
+    setNewDueDate("");
+    setNewPriority("");
+    setNewReminder("");
+    setNewLabel("");
+    setNewDeadline("");
+    setNewLocation("");
+    setPriorityOpen(false);
+    setReminderOpen(false);
+    setMoreOpen(false);
+
+    try {
+      const data = await apiJson<{ ok: true; task: TaskDto }>("/tasks", {
+        method: "POST",
+        body: JSON.stringify({
+          title,
+          description,
+          dueAt,
+          priority,
+          reminderMinutesBefore,
+          label,
+          deadlineAt,
+          location,
+        }),
+      });
+      setTasks((prev) => [data.task, ...prev]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to create task");
+      setAdding(true);
+      setNewTitle(title);
+      setNewDueDate(newDueDate);
+    }
+  }
+
+  async function updateTask(
+    id: string,
+    patch:
+      | Partial<
+          Pick<
+            TaskDto,
+            | "title"
+            | "description"
+            | "dueAt"
+            | "priority"
+            | "reminderMinutesBefore"
+            | "label"
+            | "deadlineAt"
+            | "location"
+            | "status"
+            | "progress"
+          >
+        >
+      | {
+          subTaskAdd?: { title: string };
+          subTaskToggle?: { id: string; done: boolean };
+          subTaskDelete?: { id: string };
+        },
+  ) {
+    setError(null);
+    try {
+      const data = await apiJson<{ ok: true; task: TaskDto }>(`/tasks/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      });
+      setTasks((cur) => cur.map((t) => (t.id === id ? data.task : t)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update task");
+    }
+  }
+
+  function fmtShortDayMonth(iso: string | null | undefined) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const day = d.getDate();
+    const month = d.toLocaleString(undefined, { month: "short" });
+    return `${day} ${month}`;
+  }
+
+  function fmtShortDayMonthFromDateValue(value: string): string {
+    const iso = dateValueToLocalIso(value);
+    return iso ? fmtShortDayMonth(iso) : "";
+  }
+
+  function priorityLabel(p: TaskPriority | "" | null | undefined) {
+    if (!p) return "Priority";
+    if (p === "low") return "Low";
+    if (p === "medium") return "Medium";
+    return "High";
+  }
+
+  function reminderLabel(m: number | "" | null | undefined) {
+    if (m === "" || m === null || m === undefined) return "Reminders";
+    if (m === 0) return "At time";
+    if (m === 30) return "30 min before";
+    if (m === 60) return "1 hour before";
+    if (m === 24 * 60) return "1 day before";
+    return `${m} min before`;
+  }
+
+  function fmtDuration(ms: number | null | undefined) {
+    if (!ms || !Number.isFinite(ms) || ms <= 0) return "—";
+    const totalMinutes = Math.round(ms / 60000);
+    const minutes = totalMinutes % 60;
+    const totalHours = Math.floor(totalMinutes / 60);
+    const hours = totalHours % 24;
+    const days = Math.floor(totalHours / 24);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  }
+
+  async function deleteTask(id: string) {
+    setError(null);
+    const prev = tasks;
+    setTasks((cur) => cur.filter((t) => t.id !== id));
+    try {
+      await apiJson<{ ok: true }>(`/tasks/${id}`, { method: "DELETE" });
+    } catch (e) {
+      setTasks(prev);
+      setError(e instanceof Error ? e.message : "Failed to delete task");
+    }
+
+    return (
+      <Box
+            w={
+              isFullscreen
+                ? "calc(100vw - 32px)"
+                : { base: "calc(100vw - 140px)", md: "980px" }
+            }
+            maxW={isFullscreen ? "calc(100vw - 32px)" : "calc(100vw - 140px)"}
+            maxH={
+              isFullscreen
+                ? "calc(100vh - 32px)"
+                : { base: "calc(100vh - 130px)", md: "calc(100vh - 170px)" }
+            }
+            bg="#F6F0E6"
+            borderRadius="24px"
+            borderWidth="1px"
+            borderColor="blackAlpha.200"
+            boxShadow="0 18px 50px rgba(0,0,0,0.25)"
+            overflow="hidden"
+            display="flex"
+            flexDirection="column"
+            position={isFullscreen ? "fixed" : "relative"}
+            inset={isFullscreen ? 4 : undefined}
+            zIndex={isFullscreen ? 40 : undefined}
+          >
+            {/* Header area */}
+            <Box
+              bg="#DCD9E8"
+              borderBottomWidth="1px"
+              borderBottomColor="blackAlpha.200"
+              p={{ base: 4, md: 6 }}
+              position="sticky"
+              top={0}
+              zIndex={1}
+            >
+              <Flex justify="space-between" align="flex-start" gap={4}>
+                <Box>
+                  <Text fontSize={{ base: "sm", md: "lg" }} fontWeight="900">
+                    My Task Space 📝
+                  </Text>
+                  <Text fontSize="xs" color="blackAlpha.700">
+                    Plan your day & track progress ✨
+                  </Text>
+                </Box>
+
+                <HStack gap={3}>
+                  <IconButton
+                    aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+                    variant="outline"
+                    borderRadius="999px"
+                    h="44px"
+                    w="44px"
+                    onClick={() => setIsFullscreen((v) => !v)}
+                  >
+                    <Icon as={isFullscreen ? FiMinimize2 : FiMaximize2} />
+                  </IconButton>
+
+                  <Button
+                    leftIcon={<Icon as={FiPlus} />}
+                    bg="#5B2EFF"
+                    color="white"
+                    borderRadius="999px"
+                    h="44px"
+                    px={6}
+                    fontSize="sm"
+                    fontWeight="800"
+                    _hover={{ bg: "#4B25D6" }}
+                    onClick={() => setAdding(true)}
+                  >
+                    New Task
+                  </Button>
+                </HStack>
+              </Flex>
+            </Box>
+
+            {/* Body */}
+            <Box flex="1" overflowY="auto" p={{ base: 4, md: 6 }}>
+              <Stack gap={5}>
+                {/* Top metrics */}
+                <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                  <Box
+                    bg="#F0F0F5"
+                    borderRadius="18px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    p={4}
+                  >
+                    <HStack justify="space-between">
+                      <Text fontSize="xs" color="blackAlpha.700" fontWeight="800">
+                        Total Tasks 📋
+                      </Text>
+                      <Icon as={FiClipboard} color="black" />
+                    </HStack>
+                    <Text fontSize="2xl" fontWeight="900" mt={2}>
+                      {tasks.length}
+                    </Text>
+                  </Box>
+
+                  <Box
+                    bg="#F0F0F5"
+                    borderRadius="18px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    p={4}
+                  >
+                    <HStack justify="space-between">
+                      <Text fontSize="xs" color="blackAlpha.700" fontWeight="800">
+                        Completed ✅
+                      </Text>
+                      <Icon as={FiCheckCircle} color="black" />
+                    </HStack>
+                    <Text fontSize="2xl" fontWeight="900" mt={2}>
+                      {completedCount}
+                    </Text>
+                  </Box>
+
+                  <Box
+                    bg="#F0F0F5"
+                    borderRadius="18px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    p={4}
+                  >
+                    <HStack justify="space-between">
+                      <Text fontSize="xs" color="blackAlpha.700" fontWeight="800">
+                        Total Time ⏱️
+                      </Text>
+                      <Icon as={FiBarChart2} color="black" />
+                    </HStack>
+                    <Text fontSize="2xl" fontWeight="900" mt={2}>
+                      {fmtDuration(totalFocusMs)}
+                    </Text>
+                  </Box>
+                </SimpleGrid>
+
+                {/* New task editor (NotesTool-style) */}
+                {adding ? (
+                  <Box
+                    bg="#FFF"
+                    borderRadius="20px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    boxShadow="0 10px 30px rgba(0,0,0,0.12)"
+                    overflow="hidden"
+                  >
+                    <Flex
+                      align="center"
+                      justify="space-between"
+                      px={{ base: 4, md: 5 }}
+                      py={4}
+                      bg="#F7F7FA"
+                      borderBottomWidth="1px"
+                      borderBottomColor="blackAlpha.200"
+                    >
+                      <HStack gap={2}>
+                        <Text fontSize="sm" fontWeight="900">
+                          New Task ✍️
+                        </Text>
+                        <Text fontSize="xs" color="blackAlpha.600">
+                          Keep it short and actionable
+                        </Text>
+                      </HStack>
+
+                      <IconButton
+                        aria-label="Close"
+                        variant="ghost"
+                        size="sm"
+                        borderRadius="999px"
+                        _hover={{ bg: "blackAlpha.100" }}
+                        onClick={resetNew}
+                      >
+                        <Icon as={FiX} />
+                      </IconButton>
+                    </Flex>
+
+                    <Stack gap={4} p={{ base: 4, md: 5 }}>
+                      <Input
+                        placeholder="Task title…"
+                        value={newTitle}
+                        onChange={(e) => setNewTitle(e.target.value)}
+                        fontSize="sm"
+                        fontWeight="800"
+                        bg="white"
+                      />
+
+                      <Textarea
+                        placeholder="Description (optional)…"
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                        fontSize="sm"
+                        bg="white"
+                        rows={3}
+                      />
+
+                      {/* Date + small pickers row */}
+                      <Flex gap={3} flexWrap="wrap" align="center">
+                        {/* Date picker */}
+                        <Box position="relative" minW="210px">
+                          <Button
+                            leftIcon={<Icon as={FiCalendar} />}
+                            variant="outline"
+                            borderRadius="999px"
+                            fontSize="sm"
+                            fontWeight="800"
+                            h="40px"
+                            onClick={() => openNativeDatePicker(dueDateInputRef)}
+                          >
+                            {newDueDate ? `Date: ${newDueDate}` : "Pick date 📅"}
+                          </Button>
+
+                          {/* Invisible real input to trigger native picker */}
+                          <Input
+                            ref={dueDateInputRef}
+                            type="date"
+                            value={newDueDate}
+                            onChange={(e) => setNewDueDate(e.target.value)}
+                            position="absolute"
+                            top={0}
+                            left={0}
+                            w="100%"
+                            h="100%"
+                            opacity={0}
+                            cursor="pointer"
+                            pointerEvents="auto"
+                          />
+                        </Box>
+
+                        {/* Priority popover */}
+                        <Box ref={priorityWrapRef} position="relative">
+                          <Button
+                            leftIcon={<Icon as={FiFlag} />}
+                            variant="outline"
+                            borderRadius="999px"
+                            fontSize="sm"
+                            fontWeight="800"
+                            h="40px"
+                            onClick={() => setPriorityOpen((v) => !v)}
+                          >
+                            {priorityLabel(newPriority)}
+                          </Button>
+
+                          {priorityOpen ? (
+                            <Box
+                              position="absolute"
+                              top="calc(100% + 8px)"
+                              left={0}
+                              bg="white"
+                              borderWidth="1px"
+                              borderColor="blackAlpha.200"
+                              borderRadius="16px"
+                              boxShadow="0 14px 40px rgba(0,0,0,0.15)"
+                              p={2}
+                              minW="220px"
+                              zIndex={2}
+                            >
+                              <Stack gap={1}>
+                                {([
+                                  { key: "low" as const, label: "Low 🟢" },
+                                  {
+                                    key: "medium" as const,
+                                    label: "Medium 🟡",
+                                  },
+                                  { key: "high" as const, label: "High 🔴" },
+                                ] as const).map((opt) => (
+                                  <Button
+                                    key={opt.key}
+                                    variant="ghost"
+                                    justifyContent="space-between"
+                                    borderRadius="12px"
+                                    fontSize="sm"
+                                    fontWeight="800"
+                                    _hover={{ bg: "blackAlpha.100" }}
+                                    onClick={() => {
+                                      setNewPriority(opt.key);
+                                      setPriorityOpen(false);
+                                    }}
+                                  >
+                                    <Text>{opt.label}</Text>
+                                    {newPriority === opt.key ? (
+                                      <Icon as={FiCheck} />
+                                    ) : null}
+                                  </Button>
+                                ))}
+                              </Stack>
+                            </Box>
+                          ) : null}
+                        </Box>
+
+                        {/* Reminder popover */}
+                        <Box ref={reminderWrapRef} position="relative">
+                          <Button
+                            leftIcon={<Icon as={FiBell} />}
+                            variant="outline"
+                            borderRadius="999px"
+                            fontSize="sm"
+                            fontWeight="800"
+                            h="40px"
+                            onClick={() => setReminderOpen((v) => !v)}
+                          >
+                            {reminderLabel(newReminder)}
+                          </Button>
+
+                          {reminderOpen ? (
+                            <Box
+                              position="absolute"
+                              top="calc(100% + 8px)"
+                              left={0}
+                              bg="white"
+                              borderWidth="1px"
+                              borderColor="blackAlpha.200"
+                              borderRadius="16px"
+                              boxShadow="0 14px 40px rgba(0,0,0,0.15)"
+                              p={2}
+                              minW="240px"
+                              zIndex={2}
+                            >
+                              <Stack gap={1}>
+                                {([
+                                  { v: null as const, label: "Reminders" },
+                                  { v: 0 as const, label: "At time" },
+                                  { v: 30 as const, label: "30 min before" },
+                                  { v: 60 as const, label: "1 hour before" },
+                                  {
+                                    v: 24 * 60 as const,
+                                    label: "1 day before",
+                                  },
+                                ] as const).map((opt) => (
+                                  <Button
+                                    key={String(opt.v)}
+                                    variant="ghost"
+                                    justifyContent="space-between"
+                                    borderRadius="12px"
+                                    fontSize="sm"
+                                    fontWeight="800"
+                                    _hover={{ bg: "blackAlpha.100" }}
+                                    onClick={() => {
+                                      setNewReminder(opt.v);
+                                      setReminderOpen(false);
+                                    }}
+                                  >
+                                    <Text>{opt.label}</Text>
+                                    {newReminder === opt.v ? (
+                                      <Icon as={FiCheck} />
+                                    ) : null}
+                                  </Button>
+                                ))}
+                              </Stack>
+                            </Box>
+                          ) : null}
+                        </Box>
+
+                        {/* More popover */}
+                        <Box ref={moreWrapRef} position="relative">
+                          <IconButton
+                            aria-label="More"
+                            variant="outline"
+                            borderRadius="999px"
+                            h="40px"
+                            w="40px"
+                            onClick={() => setMoreOpen((v) => !v)}
+                          >
+                            <Icon as={FiMoreHorizontal} />
+                          </IconButton>
+
+                          {moreOpen ? (
+                            <Box
+                              position="absolute"
+                              top="calc(100% + 8px)"
+                              right={0}
+                              bg="white"
+                              borderWidth="1px"
+                              borderColor="blackAlpha.200"
+                              borderRadius="16px"
+                              boxShadow="0 14px 40px rgba(0,0,0,0.15)"
+                              p={3}
+                              minW="280px"
+                              zIndex={2}
+                            >
+                              <Stack gap={3}>
+                                <Box>
+                                  <Text
+                                    fontSize="xs"
+                                    color="blackAlpha.600"
+                                    fontWeight="800"
+                                    mb={1}
+                                  >
+                                    Label 🏷️
+                                  </Text>
+                                  <Input
+                                    value={newLabel}
+                                    onChange={(e) => setNewLabel(e.target.value)}
+                                    placeholder="e.g. School"
+                                    fontSize="sm"
+                                  />
+                                </Box>
+
+                                <Box>
+                                  <Text
+                                    fontSize="xs"
+                                    color="blackAlpha.600"
+                                    fontWeight="800"
+                                    mb={1}
+                                  >
+                                    Deadline ⏰
+                                  </Text>
+
+                                  <Box position="relative">
+                                    <Input
+                                      value={newDeadline}
+                                      placeholder="Pick a deadline"
+                                      readOnly
+                                      fontSize="sm"
+                                      onClick={() => openNativeDatePicker(deadlineInputRef)}
+                                    />
+
+                                    <Input
+                                      ref={deadlineInputRef}
+                                      type="date"
+                                      value={newDeadline}
+                                      onChange={(e) => setNewDeadline(e.target.value)}
+                                      position="absolute"
+                                      top={0}
+                                      left={0}
+                                      w="100%"
+                                      h="100%"
+                                      opacity={0}
+                                      cursor="pointer"
+                                    />
+                                  </Box>
+                                </Box>
+
+                                <Box>
+                                  <Text
+                                    fontSize="xs"
+                                    color="blackAlpha.600"
+                                    fontWeight="800"
+                                    mb={1}
+                                  >
+                                    Location 📍
+                                  </Text>
+                                  <Input
+                                    value={newLocation}
+                                    onChange={(e) => setNewLocation(e.target.value)}
+                                    placeholder="Optional"
+                                    fontSize="sm"
+                                  />
+                                </Box>
+                              </Stack>
+                            </Box>
+                          ) : null}
+                        </Box>
+                      </Flex>
+
+                      {error ? (
+                        <Text fontSize="sm" color="red.600" fontWeight="700">
+                          {error}
+                        </Text>
+                      ) : null}
+
+                      <HStack justify="flex-end" gap={3}>
+                        <Button
+                          variant="outline"
+                          borderRadius="999px"
+                          fontWeight="800"
+                          onClick={resetNew}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          bg="#5B2EFF"
+                          color="white"
+                          borderRadius="999px"
+                          fontWeight="900"
+                          _hover={{ bg: "#4B25D6" }}
+                          isLoading={creating}
+                          onClick={() => void createTask()}
+                        >
+                          Add Task 🚀
+                        </Button>
+                      </HStack>
+                    </Stack>
+                  </Box>
+                ) : null}
+
+                {/* Tabs */}
+                <HStack gap={2}>
+                  {([
+                    { key: "all" as const, label: "Tasks" },
+                    { key: "today" as const, label: "Today" },
+                    { key: "completed" as const, label: "Completed" },
+                  ] as const).map((t) => (
+                    <Button
+                      key={t.key}
+                      variant={tab === t.key ? "solid" : "outline"}
+                      borderRadius="999px"
+                      h="36px"
+                      px={5}
+                      fontSize="sm"
+                      fontWeight="900"
+                      bg={tab === t.key ? "black" : "transparent"}
+                      color={tab === t.key ? "white" : "black"}
+                      _hover={{ bg: tab === t.key ? "black" : "blackAlpha.50" }}
+                      onClick={() => setTab(t.key)}
+                    >
+                      {t.label}
+                    </Button>
+                  ))}
+                </HStack>
+
+                {/* List */}
+                {loading ? (
+                  <Text fontSize="sm" color="blackAlpha.700">
+                    Loading…
+                  </Text>
+                ) : filtered.length === 0 ? (
+                  <Box
+                    bg="#FFF"
+                    borderRadius="20px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    p={8}
+                    textAlign="center"
+                  >
+                    <Text fontSize="sm" fontWeight="900">
+                      No tasks here yet 🌿
+                    </Text>
+                    <Text fontSize="xs" color="blackAlpha.700" mt={1}>
+                      Click “New Task” to add one.
+                    </Text>
+                  </Box>
+                ) : (
+                  <Box
+                    bg="#FFF"
+                    borderRadius="20px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    overflow="hidden"
+                  >
+                    {(() => {
+                      const groups = groupByDay(filtered);
+                      return (
+                        <Stack gap={0}>
+                          {groups.map((g) => (
+                            <Box key={g.key}>
+                              <Flex
+                                px={{ base: 4, md: 5 }}
+                                py={3}
+                                bg="#F7F7FA"
+                                borderBottomWidth="1px"
+                                borderBottomColor="blackAlpha.200"
+                                align="center"
+                                justify="space-between"
+                              >
+                                <Text
+                                  fontSize="xs"
+                                  fontWeight="900"
+                                  color="blackAlpha.800"
+                                >
+                                  {g.label}
+                                </Text>
+                                <Text fontSize="xs" color="blackAlpha.600">
+                                  {g.items.length} task{g.items.length === 1 ? "" : "s"}
+                                </Text>
+                              </Flex>
+
+                              <Stack gap={0}>
+                                {g.items.map((t) => {
+                                  const overdue =
+                                    t.dueAt &&
+                                    !t.completedAt &&
+                                    new Date(t.dueAt).getTime() <
+                                      new Date().setHours(0, 0, 0, 0);
+                                  const dueLabel = t.dueAt
+                                    ? new Date(t.dueAt).toLocaleDateString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                      })
+                                    : "No date";
+
+                                  return (
+                                    <Flex
+                                      key={t.id}
+                                      px={{ base: 4, md: 5 }}
+                                      py={4}
+                                      align="center"
+                                      justify="space-between"
+                                      borderBottomWidth="1px"
+                                      borderBottomColor="blackAlpha.100"
+                                    >
+                                      <HStack gap={3} minW={0}>
+                                        <IconButton
+                                          aria-label="Toggle complete"
+                                          variant="outline"
+                                          borderRadius="999px"
+                                          size="sm"
+                                          onClick={() =>
+                                            void updateTask(t.id, {
+                                              status:
+                                                t.status === "completed"
+                                                  ? "pending"
+                                                  : "completed",
+                                            })
+                                          }
+                                        >
+                                          <Icon as={FiCheck} />
+                                        </IconButton>
+
+                                        <Text
+                                          fontSize={{ base: "sm", md: "md" }}
+                                          fontWeight="800"
+                                          color="black"
+                                          lineClamp={1}
+                                        >
+                                          {t.title}
+                                        </Text>
+                                      </HStack>
+
+                                      <HStack gap={3} flexShrink={0}>
+                                        <Text
+                                          fontSize={{ base: "xs", md: "xs" }}
+                                          fontWeight="700"
+                                          color={overdue ? "red.500" : "blackAlpha.800"}
+                                        >
+                                          {dueLabel}
+                                        </Text>
+                                        <IconButton
+                                          aria-label="Delete"
+                                          variant="ghost"
+                                          size="sm"
+                                          _hover={{ bg: "blackAlpha.100" }}
+                                          onClick={() => void deleteTask(t.id)}
+                                        >
+                                          <Icon as={FiTrash2} />
+                                        </IconButton>
+                                      </HStack>
+                                    </Flex>
+                                  );
+                                })}
+                              </Stack>
+                            </Box>
+                          ))}
+                        </Stack>
+                      );
+                    })()}
+                  </Box>
+                )}
+              </Stack>
+            </Box>
+          </Box>
+        );
+                    h="8px"
+                    borderRadius="full"
+                    bg="blackAlpha.100"
+                    overflow="hidden"
+                  >
+                    <Box h="full" width={`${completionRate}%`} bg="#48BB78" />
+                  </Box>
+                </Box>
+
+                <Box
+                  bg="#FFECEC"
+                  borderRadius="16px"
+                  p={4}
+                  borderWidth="1px"
+                  borderColor="blackAlpha.200"
+                >
+                  <Text fontSize="sm" fontWeight="800" color="black">
+                    Overdue
+                  </Text>
+                  <Text mt={2} fontSize="2xl" fontWeight="900" color="black">
+                    {analytics.overdue}
+                  </Text>
+                  <Text fontSize="xs" color="blackAlpha.600">
+                    Active tasks past their due date
+                  </Text>
+                </Box>
+
+                <Box
+                  bg="#F3E9FF"
+                  borderRadius="16px"
+                  p={4}
+                  borderWidth="1px"
+                  borderColor="blackAlpha.200"
+                >
+                  <Text fontSize="sm" fontWeight="800" color="black">
+                    Due Soon
+                  </Text>
+                  <Text mt={2} fontSize="2xl" fontWeight="900" color="black">
+                    {analytics.dueSoon}
+                  </Text>
+                  <Text fontSize="xs" color="blackAlpha.600">
+                    Avg completion: {fmtDuration(analytics.avgCompletionMs)}
+                  </Text>
+                </Box>
+              </SimpleGrid>
+            ) : (
+              <Box>
+                <HStack gap={{ base: 8, md: 14 }} align="flex-end" mt={2} mb={4}>
+                  {(
+                    [
+                      { key: "tasks", label: "Tasks 🧡" },
+                      { key: "today", label: "Today 🌤️" },
+                      { key: "completed", label: "Completed ✅" },
+                    ] as const
+                  ).map((tab) => {
+                    const active = taskTab === tab.key;
+                    return (
+                      <Box
+                        key={tab.key}
+                        as="button"
+                        onClick={() => setTaskTab(tab.key)}
+                        borderBottomWidth={active ? "4px" : "0px"}
+                        borderBottomColor={active ? "#F59E0B" : "transparent"}
+                        pb={1}
+                      >
+                        <Text
+                          fontSize={{ base: "md", md: "lg" }}
+                          fontWeight={active ? "900" : "700"}
+                          color="black"
+                        >
+                          {tab.label}
+                        </Text>
+                      </Box>
+                    );
+                  })}
+                </HStack>
+
+                {(() => {
+                  const list =
+                    taskTab === "completed"
+                      ? completedTasks
+                      : taskTab === "today"
+                        ? activeTasks.filter((t) => isDueToday(t.dueAt))
+                        : activeTasks;
+
+                  if (loading) {
+                    return <Text color="blackAlpha.700">Loading…</Text>;
+                  }
+
+                  if (list.length === 0) {
+                    return (
+                      <Text color="blackAlpha.700">
+                        {taskTab === "completed"
+                          ? "No completed tasks yet."
+                          : taskTab === "today"
+                            ? "No tasks due today."
+                            : "No tasks yet. Add one with “New Task ✨”."}
+                      </Text>
+                    );
+                  }
+
+                  return (
+                    <Stack gap={5}>
+                      {list.map((t) => {
+                        const dueLabel = fmtShortDayMonth(t.dueAt) || "";
+                        const overdue =
+                          t.status !== "completed" && isOverdue(t.dueAt);
+                        const done = t.status === "completed";
+
+                        return (
+                          <Flex
+                            key={t.id}
+                            align="center"
+                            justify="space-between"
+                            bg="white"
+                            borderRadius="12px"
+                            borderWidth="1px"
+                            borderColor="#FCA5A5"
+                            px={{ base: 4, md: 6 }}
+                            py={{ base: 4, md: 5 }}
+                          >
+                            <HStack gap={4} minW={0}>
+                              <Box
+                                as="button"
+                                aria-label={
+                                  done ? "Mark as active" : "Mark as completed"
+                                }
+                                w="26px"
+                                h="26px"
+                                borderRadius="full"
+                                bg="#0B1220"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                onClick={() => {
+                                  void updateTask(t.id, {
+                                    status: done ? "pending" : "completed",
+                                    progress: done ? 0 : 100,
+                                  });
+                                }}
+                              >
+                                {done ? (
+                                  <Icon
+                                    as={FiCheck}
+                                    color="#22C55E"
+                                    boxSize="16px"
+                                  />
+                                ) : null}
+                              </Box>
+
+                              <Text
+                                fontSize={{ base: "sm", md: "md" }}
+                                fontWeight="800"
+                                color="black"
+                                lineClamp={1}
+                              >
+                                {t.title}
+                              </Text>
+                            </HStack>
+
+                            <HStack gap={3} flexShrink={0}>
+                              <Text
+                                fontSize={{ base: "xs", md: "xs" }}
+                                fontWeight="700"
+                                color={overdue ? "red.500" : "blackAlpha.800"}
+                              >
+                                {dueLabel}
+                              </Text>
+                              <IconButton
+                                aria-label="Delete"
+                                variant="ghost"
+                                size="sm"
+                                _hover={{ bg: "blackAlpha.100" }}
+                                onClick={() => void deleteTask(t.id)}
+                              >
+                                <Icon as={FiTrash2} />
+                              </IconButton>
+                            </HStack>
+                          </Flex>
+                        );
+                      })}
+                    </Stack>
+                  );
+                })()}
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      w={{ base: "calc(100vw - 140px)", md: "980px" }}
+      maxW="calc(100vw - 140px)"
+      maxH={{ base: "calc(100vh - 130px)", md: "calc(100vh - 170px)" }}
+      bg="#F6F0E6"
+      borderRadius="24px"
+      borderWidth="1px"
+      borderColor="blackAlpha.200"
+      boxShadow="0 18px 50px rgba(0,0,0,0.25)"
+      overflow="hidden"
+      display="flex"
+      flexDirection="column"
+    >
+      {/* Header area */}
+      <Box
+        bg="#DCD9E8"
+        borderBottomWidth="1px"
+        borderBottomColor="blackAlpha.200"
+        p={{ base: 4, md: 6 }}
+        position="sticky"
+        top={0}
+        zIndex={1}
+      >
+        <Flex justify="space-between" align="flex-start" gap={4}>
+          <Box>
+            <Text fontSize={{ base: "lg", md: "2xl" }} fontWeight="900">
+              My Task Space
+            </Text>
+            <Text fontSize="sm" color="blackAlpha.700">
+              Manage your assignments and track progress
+            </Text>
+          </Box>
+
+          <Button
+            size="md"
+            borderRadius="999px"
+            h="44px"
+            px={5}
+            bg="#8D57FF"
+            color="white"
+            fontSize="sm"
+            fontWeight="700"
+            _hover={{ bg: "#7C48F3" }}
+            onClick={() => setAdding((v) => !v)}
+          >
+            <HStack gap={2}>
+              <Icon as={FiPlus} />
+              <Text fontSize="sm">New Task</Text>
+            </HStack>
+          </Button>
+        </Flex>
+
+        {adding ? (
+          <HStack mt={4} gap={3} align="center">
+            <Input
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Type a task title…"
+              bg="whiteAlpha.900"
+              color="black"
+              _placeholder={{ color: "blackAlpha.600" }}
+              borderRadius="14px"
+              borderWidth="1px"
+              borderColor="blackAlpha.200"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void createTask();
+                if (e.key === "Escape") setAdding(false);
+              }}
+            />
+            <Input
+              value={newDueDate}
+              onChange={(e) => setNewDueDate(e.target.value)}
+              type="date"
+              w={{ base: "150px", md: "190px" }}
+              bg="whiteAlpha.900"
+              color="black"
+              borderRadius="14px"
+              borderWidth="1px"
+              borderColor="blackAlpha.200"
+            />
+            <Button
+              borderRadius="14px"
+              bg="black"
+              color="white"
+              _hover={{ bg: "blackAlpha.800" }}
+              onClick={() => void createTask()}
+              disabled={!newTitle.trim()}
+            >
+              Add
+            </Button>
+            <Button
+              borderRadius="14px"
+              variant="ghost"
+              _hover={{ bg: "blackAlpha.100" }}
+              onClick={() => setAdding(false)}
+            >
+              Cancel
+            </Button>
+          </HStack>
+        ) : null}
+      </Box>
+
+      {/* Scrollable content */}
+      <Box
+        flex="1"
+        overflowY="auto"
+        css={{
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(0,0,0,0.25) transparent",
+          "&::-webkit-scrollbar": { width: "8px" },
+          "&::-webkit-scrollbar-track": { background: "transparent" },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(0,0,0,0.18)",
+            borderRadius: "999px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: "rgba(0,0,0,0.28)",
+          },
+        }}
+      >
+        <Stack p={{ base: 4, md: 6 }} gap={5}>
+          {error ? (
+            <Box
+              borderRadius="14px"
+              bg="red.50"
+              borderWidth="1px"
+              borderColor="red.200"
+              px={4}
+              py={3}
+            >
+              <Text color="red.700" fontSize="sm">
+                {error}
+              </Text>
+            </Box>
+          ) : null}
+
+          {/* Stats cards */}
+          <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
+            <Box
+              bg="white"
+              borderRadius="16px"
+              borderWidth="1px"
+              borderColor="#9AC3FF"
+              p={4}
+            >
+              <HStack gap={3}>
+                <Box
+                  w="40px"
+                  h="40px"
+                  borderRadius="12px"
+                  bg="#EAF3FF"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Icon as={FiClipboard} color="#2B6CB0" boxSize={5} />
+                </Box>
+                <Box>
+                  <Text fontSize="sm" color="blackAlpha.600">
+                    Total Tasks
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="900" color="black">
+                    {stats.total}
+                  </Text>
+                </Box>
+              </HStack>
+            </Box>
+
+            <Box
+              bg="white"
+              borderRadius="16px"
+              borderWidth="1px"
+              borderColor="#B7F0C7"
+              p={4}
+            >
+              <HStack gap={3}>
+                <Box
+                  w="40px"
+                  h="40px"
+                  borderRadius="12px"
+                  bg="#E9FFF0"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Icon as={FiCheckCircle} color="#2F855A" boxSize={5} />
+                </Box>
+                <Box>
+                  <Text fontSize="sm" color="blackAlpha.600">
+                    Completed
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="900" color="black">
+                    {stats.completed}
+                  </Text>
+                </Box>
+              </HStack>
+            </Box>
+
+            <Box
+              bg="white"
+              borderRadius="16px"
+              borderWidth="1px"
+              borderColor="#FFD4A7"
+              p={4}
+            >
+              <HStack gap={3}>
+                <Box
+                  w="40px"
+                  h="40px"
+                  borderRadius="12px"
+                  bg="#FFF2E6"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Icon as={FiClock} color="#C05621" boxSize={5} />
+                </Box>
+                <Box>
+                  <Text fontSize="sm" color="blackAlpha.600">
+                    In Progress
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="900" color="black">
+                    {stats.inProgress}
+                  </Text>
+                </Box>
+              </HStack>
+            </Box>
+
+            <Box
+              bg="white"
+              borderRadius="16px"
+              borderWidth="1px"
+              borderColor="#D7B7FF"
+              p={4}
+            >
+              <HStack gap={3}>
+                <Box
+                  w="40px"
+                  h="40px"
+                  borderRadius="12px"
+                  bg="#F3E9FF"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Icon as={FiBarChart2} color="#6B46C1" boxSize={5} />
+                </Box>
+                <Box>
+                  <Text fontSize="sm" color="blackAlpha.600">
+                    Pending
+                  </Text>
+                  <Text fontSize="2xl" fontWeight="900" color="black">
+                    {stats.pending}
+                  </Text>
+                </Box>
+              </HStack>
+            </Box>
+          </SimpleGrid>
+
+          {/* View toggle */}
+          <HStack gap={3}>
+            <Button
+              size="md"
+              borderRadius="12px"
+              h="44px"
+              px={6}
+              fontSize="sm"
+              fontWeight="800"
+              bg={view === "task" ? "black" : "white"}
+              color={view === "task" ? "white" : "black"}
+              borderWidth="1px"
+              borderColor="blackAlpha.200"
+              _hover={{ bg: view === "task" ? "black" : "blackAlpha.50" }}
+              onClick={() => setView("task")}
+            >
+              Task View
+            </Button>
+            <Button
+              size="md"
+              borderRadius="12px"
+              h="44px"
+              px={6}
+              fontSize="sm"
+              fontWeight="800"
+              bg={view === "graph" ? "black" : "white"}
+              color={view === "graph" ? "white" : "black"}
+              borderWidth="1px"
+              borderColor="blackAlpha.200"
+              _hover={{ bg: view === "graph" ? "black" : "blackAlpha.50" }}
+              onClick={() => setView("graph")}
+            >
+              Graph View
+            </Button>
+            <Button
+              ml="auto"
+              size="md"
+              variant="ghost"
+              borderRadius="12px"
+              h="44px"
+              px={5}
+              fontSize="sm"
+              fontWeight="700"
+              _hover={{ bg: "blackAlpha.100" }}
+              onClick={() => void refresh()}
+              disabled={loading}
+            >
+              Refresh
+            </Button>
+          </HStack>
+
+          {view === "graph" ? (
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+              <Box
+                bg="#E9FFF6"
+                borderRadius="16px"
+                p={4}
+                borderWidth="1px"
+                borderColor="blackAlpha.200"
+              >
+                <Text fontSize="sm" fontWeight="800" color="black">
+                  Completion Rate
+                </Text>
+                <Text mt={2} fontSize="2xl" fontWeight="900" color="black">
+                  {completionRate}%
+                </Text>
+                <Text fontSize="xs" color="blackAlpha.600">
+                  {stats.completed} of {stats.total} tasks completed
+                </Text>
+                <Box
+                  mt={3}
+                  h="8px"
+                  borderRadius="full"
+                  bg="blackAlpha.100"
+                  overflow="hidden"
+                >
+                  <Box h="full" width={`${completionRate}%`} bg="#48BB78" />
+                </Box>
+              </Box>
+
+              <Box
+                bg="#FFF3E6"
+                borderRadius="16px"
+                p={4}
+                borderWidth="1px"
+                borderColor="blackAlpha.200"
+              >
+                <Text fontSize="sm" fontWeight="800" color="black">
+                  Overdue / Due Soon
+                </Text>
+                <Text mt={2} fontSize="2xl" fontWeight="900" color="black">
+                  {analytics.overdue}
+                </Text>
+                <Text fontSize="xs" color="blackAlpha.600">
+                  Overdue • Due soon: {analytics.dueSoon}
+                </Text>
+              </Box>
+
+              <Box
+                bg="#F3E9FF"
+                borderRadius="16px"
+                p={4}
+                borderWidth="1px"
+                borderColor="blackAlpha.200"
+              >
+                <Text fontSize="sm" fontWeight="800" color="black">
+                  Avg Time to Complete
+                </Text>
+                <Text mt={2} fontSize="2xl" fontWeight="900" color="black">
+                  {fmtDuration(analytics.avgCompletionMs)}
+                </Text>
+                <Text fontSize="xs" color="blackAlpha.600">
+                  Based on {analytics.completedWithTime} completed tasks
+                </Text>
+              </Box>
+            </SimpleGrid>
+          ) : (
+            <SimpleGrid columns={{ base: 1, md: 3 }} gap={4}>
+              {loading ? (
+                <Text color="blackAlpha.700">Loading…</Text>
+              ) : tasks.length === 0 ? (
+                <Text color="blackAlpha.700">
+                  No tasks yet. Add one with “New Task”.
+                </Text>
+              ) : (
+                tasks.map((t) => (
+                  <Box
+                    key={t.id}
+                    bg="white"
+                    borderRadius="16px"
+                    borderWidth="1px"
+                    borderColor="blackAlpha.200"
+                    p={4}
+                  >
+                    {(() => {
+                      const subTotal = t.subTasks?.length ?? 0;
+                      const subDone =
+                        t.subTasks?.filter((st) => st.done).length ?? 0;
+                      const derivedProgress = subTotal
+                        ? Math.round((subDone / subTotal) * 100)
+                        : (t.progress ?? 0);
+                      const completedLabel = subTotal
+                        ? `${subDone}/${subTotal} done`
+                        : `${derivedProgress}%`;
+                      const isDerived = subTotal > 0;
+
+                      return (
+                        <>
+                          <Flex
+                            align="flex-start"
+                            justify="space-between"
+                            gap={3}
+                          >
+                            <Box minW={0}>
+                              <Text fontWeight="900" lineClamp={2}>
+                                {t.title}
+                              </Text>
+                              <HStack mt={1} gap={3} wrap="wrap">
+                                <Text fontSize="xs" color="blackAlpha.600">
+                                  Added: {fmtDateTime(t.createdAt)}
+                                </Text>
+                                <Text fontSize="xs" color="blackAlpha.600">
+                                  Deadline: {fmtDate(t.dueAt)}
+                                </Text>
+                              </HStack>
+                              <Text fontSize="xs" color="blackAlpha.600" mt={1}>
+                                {completedLabel} • Status: {t.status}
+                              </Text>
+                              {isDerived ? (
+                                <Text
+                                  fontSize="xs"
+                                  color="blackAlpha.600"
+                                  mt={1}
+                                >
+                                  Status/progress is auto from subtasks
+                                </Text>
+                              ) : null}
+                            </Box>
+                            <HStack gap={1}>
+                              <IconButton
+                                aria-label={
+                                  openTaskId === t.id ? "Collapse" : "Expand"
+                                }
+                                variant="ghost"
+                                size="sm"
+                                _hover={{ bg: "blackAlpha.100" }}
+                                onClick={() =>
+                                  setOpenTaskId((cur) =>
+                                    cur === t.id ? null : t.id,
+                                  )
+                                }
+                              >
+                                <Icon
+                                  as={
+                                    openTaskId === t.id
+                                      ? FiChevronUp
+                                      : FiChevronDown
+                                  }
+                                />
+                              </IconButton>
+                              <IconButton
+                                aria-label="Delete"
+                                variant="ghost"
+                                size="sm"
+                                _hover={{ bg: "blackAlpha.100" }}
+                                onClick={() => void deleteTask(t.id)}
+                              >
+                                <Icon as={FiTrash2} />
+                              </IconButton>
+                            </HStack>
+                          </Flex>
+
+                          <HStack mt={3} gap={2}>
+                            <Button
+                              size="xs"
+                              borderRadius="999px"
+                              bg={t.status === "pending" ? "black" : "white"}
+                              color={t.status === "pending" ? "white" : "black"}
+                              borderWidth="1px"
+                              borderColor="blackAlpha.200"
+                              _hover={{
+                                bg:
+                                  t.status === "pending"
+                                    ? "black"
+                                    : "blackAlpha.50",
+                              }}
+                              disabled={isDerived}
+                              onClick={() =>
+                                void updateTask(t.id, {
+                                  status: "pending",
+                                  progress: Math.min(t.progress, 99),
+                                })
+                              }
+                            >
+                              Pending
+                            </Button>
+                            <Button
+                              size="xs"
+                              borderRadius="999px"
+                              bg={t.status === "inProgress" ? "black" : "white"}
+                              color={
+                                t.status === "inProgress" ? "white" : "black"
+                              }
+                              borderWidth="1px"
+                              borderColor="blackAlpha.200"
+                              _hover={{
+                                bg:
+                                  t.status === "inProgress"
+                                    ? "black"
+                                    : "blackAlpha.50",
+                              }}
+                              disabled={isDerived}
+                              onClick={() =>
+                                void updateTask(t.id, {
+                                  status: "inProgress",
+                                  progress: Math.max(1, t.progress),
+                                })
+                              }
+                            >
+                              In Progress
+                            </Button>
+                            <Button
+                              size="xs"
+                              borderRadius="999px"
+                              bg={t.status === "completed" ? "black" : "white"}
+                              color={
+                                t.status === "completed" ? "white" : "black"
+                              }
+                              borderWidth="1px"
+                              borderColor="blackAlpha.200"
+                              _hover={{
+                                bg:
+                                  t.status === "completed"
+                                    ? "black"
+                                    : "blackAlpha.50",
+                              }}
+                              disabled={isDerived}
+                              onClick={() =>
+                                void updateTask(t.id, {
+                                  status: "completed",
+                                  progress: 100,
+                                })
+                              }
+                            >
+                              Done
+                            </Button>
+                          </HStack>
+
+                          <Box
+                            mt={3}
+                            h="8px"
+                            borderRadius="full"
+                            bg="blackAlpha.100"
+                            overflow="hidden"
+                          >
+                            <Box
+                              h="full"
+                              width={`${derivedProgress}%`}
+                              bg="#8D57FF"
+                            />
+                          </Box>
+
+                          {openTaskId === t.id ? (
+                            <Box
+                              mt={4}
+                              borderTopWidth="1px"
+                              borderTopColor="blackAlpha.100"
+                              pt={3}
+                            >
+                              <HStack justify="space-between">
+                                <Text
+                                  fontSize="sm"
+                                  fontWeight="900"
+                                  color="black"
+                                >
+                                  Subtasks
+                                </Text>
+                                <Text fontSize="xs" color="blackAlpha.600">
+                                  Completed: {subDone} • Remaining:{" "}
+                                  {Math.max(0, subTotal - subDone)}
+                                </Text>
+                              </HStack>
+
+                              <HStack mt={3} gap={2}>
+                                <Input
+                                  value={newSubTaskTitleByTask[t.id] ?? ""}
+                                  onChange={(e) =>
+                                    setNewSubTaskTitleByTask((cur) => ({
+                                      ...cur,
+                                      [t.id]: e.target.value,
+                                    }))
+                                  }
+                                  placeholder="Add a subtask…"
+                                  bg="white"
+                                  color="black"
+                                  _placeholder={{ color: "blackAlpha.600" }}
+                                  borderRadius="12px"
+                                  h="36px"
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      const title = (
+                                        newSubTaskTitleByTask[t.id] ?? ""
+                                      ).trim();
+                                      if (!title) return;
+                                      void updateTask(t.id, {
+                                        subTaskAdd: { title },
+                                      });
+                                      setNewSubTaskTitleByTask((cur) => ({
+                                        ...cur,
+                                        [t.id]: "",
+                                      }));
+                                    }
+                                  }}
+                                />
+                                <Button
+                                  size="sm"
+                                  h="36px"
+                                  borderRadius="12px"
+                                  bg="black"
+                                  color="white"
+                                  _hover={{ bg: "blackAlpha.800" }}
+                                  onClick={() => {
+                                    const title = (
+                                      newSubTaskTitleByTask[t.id] ?? ""
+                                    ).trim();
+                                    if (!title) return;
+                                    void updateTask(t.id, {
+                                      subTaskAdd: { title },
+                                    });
+                                    setNewSubTaskTitleByTask((cur) => ({
+                                      ...cur,
+                                      [t.id]: "",
+                                    }));
+                                  }}
+                                >
+                                  <HStack gap={2}>
+                                    <Icon as={FiPlus} />
+                                    <Text fontSize="sm">Add</Text>
+                                  </HStack>
+                                </Button>
+                              </HStack>
+
+                              <Stack mt={3} gap={2}>
+                                {(t.subTasks ?? []).length === 0 ? (
+                                  <Text fontSize="xs" color="blackAlpha.600">
+                                    No subtasks yet. Add your first one.
+                                  </Text>
+                                ) : (
+                                  (t.subTasks ?? []).map((st) => (
+                                    <Flex
+                                      key={st.id}
+                                      align="center"
+                                      justify="space-between"
+                                      gap={3}
+                                      bg="blackAlpha.50"
+                                      borderRadius="12px"
+                                      px={3}
+                                      py={2}
+                                    >
+                                      <HStack gap={2} minW={0}>
+                                        <IconButton
+                                          aria-label={
+                                            st.done
+                                              ? "Mark not done"
+                                              : "Mark done"
+                                          }
+                                          size="sm"
+                                          variant="ghost"
+                                          _hover={{ bg: "blackAlpha.100" }}
+                                          onClick={() =>
+                                            void updateTask(t.id, {
+                                              subTaskToggle: {
+                                                id: st.id,
+                                                done: !st.done,
+                                              },
+                                            })
+                                          }
+                                        >
+                                          <Icon
+                                            as={
+                                              st.done ? FiCheckSquare : FiSquare
+                                            }
+                                          />
+                                        </IconButton>
+                                        <Box minW={0}>
+                                          <Text
+                                            fontSize="sm"
+                                            fontWeight="700"
+                                            color="black"
+                                            textDecoration={
+                                              st.done ? "line-through" : "none"
+                                            }
+                                            lineClamp={2}
+                                          >
+                                            {st.title}
+                                          </Text>
+                                          <Text
+                                            fontSize="xs"
+                                            color="blackAlpha.600"
+                                          >
+                                            {st.done
+                                              ? `Done: ${fmtDateTime(st.doneAt)}`
+                                              : `Added: ${fmtDateTime(st.createdAt)}`}
+                                          </Text>
+                                        </Box>
+                                      </HStack>
+
+                                      <IconButton
+                                        aria-label="Delete subtask"
+                                        size="sm"
+                                        variant="ghost"
+                                        _hover={{ bg: "blackAlpha.100" }}
+                                        onClick={() =>
+                                          void updateTask(t.id, {
+                                            subTaskDelete: { id: st.id },
+                                          })
+                                        }
+                                      >
+                                        <Icon as={FiTrash2} />
+                                      </IconButton>
+                                    </Flex>
+                                  ))
+                                )}
+                              </Stack>
+                            </Box>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+                  </Box>
+                ))
+              )}
+            </SimpleGrid>
+          )}
+        </Stack>
+      </Box>
+    </Box>
+  );
+}
