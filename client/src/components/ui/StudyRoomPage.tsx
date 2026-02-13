@@ -7,6 +7,7 @@ import {
   HStack,
   Icon,
   IconButton,
+  Image,
   Stack,
   Text,
 } from "@chakra-ui/react";
@@ -25,7 +26,7 @@ import {
   FiUser,
   FiVideo,
 } from "react-icons/fi";
-import { TbBrain } from "react-icons/tb";
+// import { TbBrain } from "react-icons/tb";
 import TimerTool from "./studyroom/tools/TimerTool";
 import TaskTool from "./studyroom/tools/TaskTool";
 import NotesTool from "./studyroom/tools/NotesTool";
@@ -143,12 +144,13 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
   const sidebarItems: Array<{
     key: ToolKey;
     label: string;
-    icon: any;
+    icon?: any;
+    image?: string;
   }> = [
     { key: "timer", label: "Timer", icon: FiClock },
     { key: "task", label: "Task", icon: FiCheckSquare },
     { key: "notes", label: "Notes", icon: FiEdit3 },
-    { key: "foxai", label: "Fox AI", icon: TbBrain },
+    { key: "foxai", label: "Fox AI", image: "/ai-logo.png" },
     { key: "media", label: "Media", icon: FiMusic },
     { key: "video", label: "Video", icon: FiVideo },
     { key: "image", label: "Image", icon: FiImage },
@@ -333,16 +335,29 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
         top={{ base: 20, md: 24 }}
         zIndex={2}
         direction="column"
-        w="86px"
+        w="90px"
         maxH="calc(100vh - 140px)"
-        bg="blackAlpha.800"
-        borderRadius="22px"
-        p={3}
-        boxShadow="0 18px 50px rgba(0,0,0,0.4)"
-        borderWidth="1px"
-        borderColor="whiteAlpha.200"
+        bg="rgba(12, 12, 14, 0.75)"
+        backdropFilter="blur(20px) saturate(180%)"
+        borderRadius="24px"
+        p={2}
+        boxShadow="0 24px 48px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08)"
       >
-        <Stack gap={3} flex="1" overflowY="auto">
+        <Stack
+          gap={3}
+          flex="1"
+          overflowY="auto"
+          px={1}
+          py={2}
+          css={{
+            "&::-webkit-scrollbar": { width: "0px" },
+            "&::-webkit-scrollbar-track": { background: "transparent" },
+          }}
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
           {sidebarItems.map((item) => {
             const isMedia = item.key === "media";
             const isTimer = item.key === "timer";
@@ -364,31 +379,95 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
                     setActiveTool(item.key);
                   }
                 }}
-                borderRadius="16px"
-                bg={selected ? "whiteAlpha.200" : "transparent"}
-                _hover={{ bg: "whiteAlpha.200" }}
+                role="group"
+                borderRadius="20px"
+                bg={selected ? "whiteAlpha.100" : "transparent"}
+                _hover={{ bg: "whiteAlpha.100", transform: "translateY(-2px)" }}
+                _active={{ transform: "scale(0.95)" }}
+                transition="all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
                 py={3}
-                px={2}
                 display="flex"
                 flexDirection="column"
                 alignItems="center"
-                gap={2}
+                gap={1.5}
+                position="relative"
               >
+                {/* Active Indicator Glow */}
+                {selected && (
+                  <Box
+                    position="absolute"
+                    inset="0"
+                    borderRadius="20px"
+                    bg="white"
+                    opacity={0.05}
+                    filter="blur(8px)"
+                    zIndex={-1}
+                  />
+                )}
+
                 <Box
-                  w="34px"
-                  h="34px"
-                  borderRadius="full"
-                  bg={selected ? "whiteAlpha.200" : "transparent"}
+                  w="42px"
+                  h="42px"
+                  borderRadius="14px"
+                  bg={
+                    selected
+                      ? "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)"
+                      : "transparent"
+                  }
+                  borderWidth="1px"
+                  borderColor={selected ? "whiteAlpha.300" : "transparent"}
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
+                  transition="all 0.3s"
+                  _groupHover={{
+                    bg: selected ? undefined : "whiteAlpha.50",
+                    borderColor: selected ? undefined : "whiteAlpha.100",
+                  }}
+                  boxShadow={
+                    selected
+                      ? "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)"
+                      : "none"
+                  }
                 >
-                  <Icon as={item.icon} boxSize={5} color="white" />
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      w="20px"
+                      h="20px"
+                      objectFit="contain"
+                      opacity={selected ? 1 : 0.6}
+                      transition="all 0.3s"
+                      _groupHover={{ opacity: 1, transform: "scale(1.1)" }}
+                      filter={
+                        selected
+                          ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                          : "none"
+                      }
+                    />
+                  ) : (
+                    <Icon
+                      as={item.icon}
+                      boxSize={5}
+                      color={selected ? "white" : "whiteAlpha.600"}
+                      transition="all 0.3s"
+                      _groupHover={{ color: "white", transform: "scale(1.1)" }}
+                      filter={
+                        selected
+                          ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                          : "none"
+                      }
+                    />
+                  )}
                 </Box>
                 <Text
-                  fontSize="xs"
-                  color={selected ? "white" : "whiteAlpha.800"}
-                  lineHeight="short"
+                  fontSize="9px"
+                  fontWeight="700"
+                  textTransform="uppercase"
+                  letterSpacing="0.05em"
+                  color={selected ? "white" : "whiteAlpha.500"}
+                  transition="all 0.3s"
+                  _groupHover={{ color: "whiteAlpha.900" }}
                 >
                   {item.label}
                 </Text>
