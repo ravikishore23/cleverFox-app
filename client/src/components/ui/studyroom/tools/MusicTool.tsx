@@ -149,15 +149,30 @@ type WidgetPos = { x: number; y: number };
 
 const POS_STORAGE_KEY = "cleverfox.musicWidget.pos.v1";
 
+const BG_COLORS = [
+  "#5C57C8", // Default Purple
+  "#1DB954", // Spotify Green
+  "#FF4B4B", // Red
+  "#2E3A59", // Dark Blue
+  "#000000", // Black
+  "#D97706", // Amber
+];
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
 type MusicToolProps = {
   onClose?: () => void;
+  onFocus?: () => void;
+  zIndex?: number;
 };
 
-export default function MusicTool({ onClose }: MusicToolProps) {
+export default function MusicTool({
+  onClose,
+  onFocus,
+  zIndex = 3,
+}: MusicToolProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const widgetRef = useRef<HTMLDivElement | null>(null);
   const youTubePlayerRef = useRef<YouTubePlayer | null>(null);
@@ -168,6 +183,7 @@ export default function MusicTool({ onClose }: MusicToolProps) {
   const [urlInput, setUrlInput] = useState("");
   const [savedUrl, setSavedUrl] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [bgColor, setBgColor] = useState(BG_COLORS[0]);
   const [pos, setPos] = useState<WidgetPos>(() => {
     if (typeof window === "undefined") return { x: 24, y: 96 };
     try {
@@ -211,6 +227,8 @@ export default function MusicTool({ onClose }: MusicToolProps) {
 
     // Only enforce mouse left-click; touch/pen can report different button values.
     if (e.pointerType === "mouse" && e.button !== 0) return;
+
+    onFocus?.();
 
     e.preventDefault();
     try {
@@ -556,14 +574,15 @@ export default function MusicTool({ onClose }: MusicToolProps) {
       position="fixed"
       left={`${pos.x}px`}
       top={`${pos.y}px`}
-      zIndex={3}
+      zIndex={zIndex}
       w={{ base: "calc(100vw - 24px)", sm: "380px" }}
       maxW="420px"
+      onPointerDown={() => onFocus?.()}
     >
       {/* Purple Spotify-like floating widget */}
       <Box
         borderRadius="14px"
-        bg="#5C57C8"
+        bg={bgColor}
         p={2.5}
         color="white"
         position="relative"
@@ -748,49 +767,71 @@ export default function MusicTool({ onClose }: MusicToolProps) {
           bg="#0B0B0C"
           p={4}
         >
+          {/* Theme Colors */}
+          <HStack gap={2} mb={4} justify="center">
+            {BG_COLORS.map((color) => (
+              <Box
+                key={color}
+                as="button"
+                w="24px"
+                h="24px"
+                borderRadius="full"
+                bg={color}
+                borderWidth={bgColor === color ? "2px" : "1px"}
+                borderColor={bgColor === color ? "white" : "whiteAlpha.200"}
+                onClick={() => setBgColor(color)}
+                _hover={{ transform: "scale(1.1)" }}
+                transition="all 0.2s"
+              />
+            ))}
+          </HStack>
+
           {/* URL input + Save */}
-          <HStack gap={3}>
+          <HStack gap={2} mb={3}>
             <Input
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
-              placeholder="Enter YouTube or Spotify URL here"
-              h="40px"
+              placeholder="Paste YouTube or Spotify link"
+              h="36px"
+              fontSize="sm"
               borderRadius="10px"
-              bg="#1A1A1D"
+              bg="whiteAlpha.100"
               borderWidth="1px"
-              borderColor="whiteAlpha.200"
+              borderColor="transparent"
+              _focus={{ borderColor: "whiteAlpha.300", bg: "blackAlpha.400" }}
               color="white"
-              _placeholder={{ color: "whiteAlpha.600" }}
+              _placeholder={{ color: "whiteAlpha.500" }}
             />
             <Button
-              h="40px"
+              h="36px"
+              px={4}
               borderRadius="10px"
-              bg="transparent"
-              borderWidth="1px"
-              borderColor="whiteAlpha.400"
+              bg="whiteAlpha.200"
               color="white"
-              _hover={{ bg: "whiteAlpha.200" }}
+              fontSize="sm"
+              fontWeight="500"
+              _hover={{ bg: "whiteAlpha.300" }}
               onClick={() => {
                 const url = urlInput.trim();
                 if (!url) return;
                 setSavedUrl(url);
               }}
             >
-              Save
+              Load
             </Button>
             <IconButton
               aria-label="Refresh"
-              h="40px"
-              w="40px"
+              h="36px"
+              w="36px"
               borderRadius="10px"
               variant="ghost"
-              color="white"
-              _hover={{ bg: "whiteAlpha.200" }}
+              color="whiteAlpha.500"
+              _hover={{ bg: "whiteAlpha.100", color: "white" }}
               onClick={() => {
                 setUrlInput(savedUrl ?? "");
               }}
             >
-              <Icon as={FiRefreshCw} />
+              <Icon as={FiRefreshCw} boxSize={4} />
             </IconButton>
           </HStack>
 
@@ -816,14 +857,33 @@ export default function MusicTool({ onClose }: MusicToolProps) {
             <HStack gap={3} flexWrap="wrap">
               <Button
                 size="sm"
-                borderRadius="10px"
-                bg={spotifyToken ? "whiteAlpha.200" : "#1DB954"}
-                color={spotifyToken ? "white" : "black"}
-                _hover={{ bg: spotifyToken ? "whiteAlpha.200" : "#19a14a" }}
+                borderRadius="full"
+                bg={spotifyToken ? "whiteAlpha.100" : "#1DB954"}
+                color={spotifyToken ? "whiteAlpha.900" : "black"}
+                fontWeight="700"
+                px={5}
+                h="36px"
+                _hover={{
+                  bg: spotifyToken ? "whiteAlpha.100" : "#1ed760",
+                  transform: !spotifyToken ? "translateY(-1px)" : "none",
+                  boxShadow: !spotifyToken
+                    ? "0 4px 12px rgba(29, 185, 84, 0.4)"
+                    : "none",
+                }}
+                _active={{ transform: "scale(0.98)" }}
+                transition="all 0.2s"
                 onClick={() => void spotifyConnect()}
                 disabled={!!spotifyToken}
+                _disabled={{ opacity: 1, cursor: "default" }}
               >
-                {spotifyToken ? "Spotify connected" : "Connect Spotify"}
+                <HStack gap={2}>
+                  <Icon
+                    as={FaSpotify}
+                    boxSize={4}
+                    color={spotifyToken ? "#1DB954" : "currentColor"}
+                  />
+                  <Text>{spotifyToken ? "Connected" : "Connect Spotify"}</Text>
+                </HStack>
               </Button>
               {spotifyToken ? (
                 <Button

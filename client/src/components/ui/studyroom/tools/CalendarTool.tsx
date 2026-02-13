@@ -19,6 +19,8 @@ import {
   FiRefreshCw,
   FiTrash2,
   FiX,
+  FiMaximize2,
+  FiMinimize2,
 } from "react-icons/fi";
 import { MdOutlineCalendarMonth } from "react-icons/md";
 
@@ -153,6 +155,8 @@ export default function CalendarTool({ onClose }: CalendarToolProps) {
   const [monthEvents, setMonthEvents] = useState<ScheduleEventDto[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const [newTitle, setNewTitle] = useState("");
   const [newAllDay, setNewAllDay] = useState(false);
@@ -445,11 +449,28 @@ export default function CalendarTool({ onClose }: CalendarToolProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [monthCursor.getFullYear(), monthCursor.getMonth()]);
 
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isFullscreen]);
+
   const tool = (
     <Box
-      w={{ base: "calc(100vw - 140px)", md: "980px" }}
-      maxW="calc(100vw - 140px)"
-      maxH={{ base: "calc(100vh - 130px)", md: "calc(100vh - 170px)" }}
+      w={
+        isFullscreen
+          ? "calc(100vw - 32px)"
+          : { base: "calc(100vw - 140px)", md: "980px" }
+      }
+      maxW={isFullscreen ? "calc(100vw - 32px)" : "calc(100vw - 140px)"}
+      maxH={
+        isFullscreen
+          ? "calc(100vh - 32px)"
+          : { base: "calc(100vh - 130px)", md: "calc(100vh - 170px)" }
+      }
       bg={BG}
       borderRadius="24px"
       borderWidth="1px"
@@ -458,6 +479,9 @@ export default function CalendarTool({ onClose }: CalendarToolProps) {
       overflow="hidden"
       display="flex"
       flexDirection="column"
+      position={isFullscreen ? "fixed" : "relative"}
+      inset={isFullscreen ? 4 : undefined}
+      zIndex={isFullscreen ? 40 : undefined}
     >
       <Box
         bg={HEADER_BG}
@@ -534,6 +558,23 @@ export default function CalendarTool({ onClose }: CalendarToolProps) {
               disabled={loadingEvents}
             >
               <Icon as={FiRefreshCw} />
+            </IconButton>
+
+            <IconButton
+              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              size="md"
+              variant="ghost"
+              h="44px"
+              w="44px"
+              borderRadius="14px"
+              bg="white"
+              borderWidth="1px"
+              borderColor="blackAlpha.200"
+              color="black"
+              _hover={{ bg: "blackAlpha.50" }}
+              onClick={() => setIsFullscreen((v) => !v)}
+            >
+              <Icon as={isFullscreen ? FiMinimize2 : FiMaximize2} />
             </IconButton>
 
             {onClose ? (

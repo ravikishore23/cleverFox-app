@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  chakra,
   Flex,
   Heading,
   HStack,
@@ -31,6 +32,8 @@ import NotesTool from "./studyroom/tools/NotesTool";
 import CalendarTool from "./studyroom/tools/CalendarTool";
 import FoxAiTool from "./studyroom/tools/FoxAiTool";
 import MusicTool from "./studyroom/tools/MusicTool";
+import ImageTool from "./studyroom/tools/ImageTool";
+import VideoTool from "./studyroom/tools/VideoTool";
 
 type User = {
   name: string;
@@ -52,7 +55,40 @@ type ToolKey =
   | "calendar";
 
 export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
-  const [activeTool, setActiveTool] = useState<ToolKey>("timer");
+  const [activeTool, setActiveTool] = useState<ToolKey>("task");
+  const [isMusicOpen, setIsMusicOpen] = useState(false);
+  const [isTimerOpen, setIsTimerOpen] = useState(true);
+
+  // Manage z-indices for window layering
+  // Base z-indexes: Background=0, Overlay=1, Panel=2
+  // Floating windows should be >= 3 when active, or can be pushed back
+  const [musicZ, setMusicZ] = useState(3);
+  const [timerZ, setTimerZ] = useState(3);
+
+  const bringToFront = (window: "music" | "timer") => {
+    // If we bring one to front, it goes higher than the other (and higher than panel=2)
+    // We can use 10 vs 9, etc.
+    if (window === "music") {
+      setMusicZ(10);
+      setTimerZ((prev) => (prev >= 10 ? 9 : prev));
+    } else {
+      setTimerZ(10);
+      setMusicZ((prev) => (prev >= 10 ? 9 : prev));
+    }
+  };
+
+  // Push floating windows back when a main panel opens (zIndex 2)
+  useEffect(() => {
+    if (activeTool !== "timer") {
+      setMusicZ(1);
+      setTimerZ(1);
+    } else {
+      // Reset to default floating level (3) when back to wallpaper-only mode
+      // unless one was already forcefully higher? Maybe just reset both to 3 is simpler for now.
+      setMusicZ(3);
+      setTimerZ(3);
+    }
+  }, [activeTool]);
 
   // Timer state
   const [focusMinutes, setFocusMinutes] = useState(25);
@@ -61,6 +97,10 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
   const [mode, setMode] = useState<"focus" | "break" | "rest">("focus");
   const [secondsLeft, setSecondsLeft] = useState(25 * 60);
   const [running, setRunning] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(
+    "/wp8773098-vector-graphics-wallpapers.jpg",
+  );
+  const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
 
   // Task state
   // Notes state
@@ -199,13 +239,29 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
     <Box
       minH="100vh"
       position="relative"
-      bgImage="url(/wp8773098-vector-graphics-wallpapers.jpg)"
+      bgImage={!backgroundVideo ? `url(${backgroundImage})` : undefined}
       bgSize="cover"
       bgPos="center"
       bgRepeat="no-repeat"
       overflow="hidden"
     >
-      <Box position="absolute" inset={0} bg="blackAlpha.300" />
+      {backgroundVideo && (
+        <chakra.video
+          src={backgroundVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+          position="absolute"
+          top="0"
+          left="0"
+          w="100%"
+          h="100%"
+          objectFit="cover"
+          zIndex={0}
+        />
+      )}
+      <Box position="absolute" inset={0} bg="blackAlpha.300" zIndex={1} />
 
       {/* Top-right control bar */}
       <Flex
@@ -288,12 +344,26 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
       >
         <Stack gap={3} flex="1" overflowY="auto">
           {sidebarItems.map((item) => {
-            const selected = activeTool === item.key;
+            const isMedia = item.key === "media";
+            const isTimer = item.key === "timer";
+            const selected = isMedia
+              ? isMusicOpen
+              : isTimer
+                ? isTimerOpen
+                : activeTool === item.key;
             return (
               <Box
                 key={item.key}
                 as="button"
-                onClick={() => setActiveTool(item.key)}
+                onClick={() => {
+                  if (isMedia) {
+                    setIsMusicOpen((prev) => !prev);
+                  } else if (isTimer) {
+                    setIsTimerOpen((prev) => !prev);
+                  } else {
+                    setActiveTool(item.key);
+                  }
+                }}
                 borderRadius="16px"
                 bg={selected ? "whiteAlpha.200" : "transparent"}
                 _hover={{ bg: "whiteAlpha.200" }}
@@ -356,38 +426,67 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
         top={{ base: 20, md: 24 }}
         zIndex={2}
       >
-        {activeTool === "media" ? (
-          <MusicTool onClose={() => setActiveTool("timer")} />
-        ) : activeTool === "timer" ? (
-          <TimerTool
-            mode={mode}
-            setMode={setMode}
-            focusMinutes={focusMinutes}
-            setFocusMinutes={setFocusMinutes}
-            breakMinutes={breakMinutes}
-            setBreakMinutes={setBreakMinutes}
-            restMinutes={restMinutes}
-            setRestMinutes={setRestMinutes}
-            secondsLeft={secondsLeft}
-            running={running}
-            progressValue={progressValue}
-            onStart={() => setRunning(true)}
-            onPause={() => setRunning(false)}
-            onReset={() => {
-              setRunning(false);
-              setSecondsLeft(totalSeconds);
-            }}
-          />
-        ) : activeTool === "task" ? (
-          <TaskTool />
+        {activeTool === "task" ? (
+          <TaskTool onClose={() => setActiveTool("timer")} />
         ) : activeTool === "notes" ? (
           <NotesTool onClose={() => setActiveTool("timer")} />
         ) : activeTool === "calendar" ? (
           <CalendarTool onClose={() => setActiveTool("timer")} />
-        ) : (
+        ) : activeTool === "image" ? (
+          <ImageTool
+            onClose={() => setActiveTool("timer")}
+            onBackgroundSelect={(src) => {
+              setBackgroundImage(src);
+              setBackgroundVideo(null); // Clear video if image selected
+            }}
+            currentBackground={backgroundImage}
+          />
+        ) : activeTool === "video" ? (
+          <VideoTool
+            onClose={() => setActiveTool("timer")}
+            onVideoSelect={(src) => {
+              setBackgroundVideo(src);
+              // We don't unset image, but video overlays it
+            }}
+            currentVideo={backgroundVideo}
+          />
+        ) : activeTool === "foxai" ? (
           panel
-        )}
+        ) : null}
       </Box>
+
+      {isMusicOpen && (
+        <MusicTool
+          onClose={() => setIsMusicOpen(false)}
+          zIndex={musicZ}
+          onFocus={() => bringToFront("music")}
+        />
+      )}
+
+      {isTimerOpen && (
+        <TimerTool
+          mode={mode}
+          setMode={setMode}
+          focusMinutes={focusMinutes}
+          setFocusMinutes={setFocusMinutes}
+          breakMinutes={breakMinutes}
+          setBreakMinutes={setBreakMinutes}
+          restMinutes={restMinutes}
+          setRestMinutes={setRestMinutes}
+          secondsLeft={secondsLeft}
+          running={running}
+          progressValue={progressValue}
+          onStart={() => setRunning(true)}
+          onPause={() => setRunning(false)}
+          onReset={() => {
+            setRunning(false);
+            setSecondsLeft(totalSeconds);
+          }}
+          onClose={() => setIsTimerOpen(false)}
+          zIndex={timerZ}
+          onFocus={() => bringToFront("timer")}
+        />
+      )}
     </Box>
   );
 }

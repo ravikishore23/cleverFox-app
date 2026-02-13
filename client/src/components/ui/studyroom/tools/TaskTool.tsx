@@ -176,9 +176,9 @@ function fmtWeekdayShort(d: Date): string {
 
 function priorityLabel(p: TaskPriority | "" | null | undefined) {
   if (!p) return "Priority";
-  if (p === "low") return "Low 🟢";
-  if (p === "medium") return "Medium 🟡";
-  return "High 🔴";
+  if (p === "low") return "Low 🍃";
+  if (p === "medium") return "Medium ⚡";
+  return "High 🔥";
 }
 
 function reminderLabel(m: number | "" | null | undefined) {
@@ -190,7 +190,11 @@ function reminderLabel(m: number | "" | null | undefined) {
   return `${m} min`;
 }
 
-export default function TaskTool() {
+type TaskToolProps = {
+  onClose?: () => void;
+};
+
+export default function TaskTool({ onClose }: TaskToolProps) {
   const [tasks, setTasks] = useState<TaskDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -620,6 +624,21 @@ export default function TaskTool() {
               >
                 <Icon as={isFullscreen ? FiMinimize2 : FiMaximize2} />
               </IconButton>
+
+              {/* Close Button */}
+              {onClose && (
+                <IconButton
+                  aria-label="Close"
+                  variant="outline"
+                  borderRadius="999px"
+                  h="38px"
+                  w="38px"
+                  bg="whiteAlpha.800"
+                  onClick={onClose}
+                >
+                  <Icon as={FiX} />
+                </IconButton>
+              )}
             </HStack>
           </Flex>
 
@@ -1223,18 +1242,6 @@ export default function TaskTool() {
                 _placeholder={{ color: "blackAlpha.500" }}
               />
 
-              <Textarea
-                value={newDescription}
-                onChange={(e) => setNewDescription(e.target.value)}
-                placeholder="Description"
-                bg="white"
-                borderRadius="14px"
-                minH="120px"
-                fontSize="md"
-                color="black"
-                _placeholder={{ color: "blackAlpha.500" }}
-              />
-
               <SimpleGrid
                 columns={{ base: 1, md: 3 }}
                 gap={4}
@@ -1258,7 +1265,9 @@ export default function TaskTool() {
                         fontWeight: 800,
                         fontSize: "14px",
                         borderColor: "rgba(0,0,0,0.16)",
-                        paddingLeft: "44px",
+                        paddingLeft: "48px",
+                        color: "#000000",
+                        opacity: 1,
                       },
                     }}
                     leftSection={
@@ -1275,55 +1284,106 @@ export default function TaskTool() {
                     h="56px"
                     px={5}
                     w="100%"
-                    justifyContent="flex-start"
-                    bg="white"
+                    justifyContent="space-between"
+                    bg={
+                      newPriority === "high"
+                        ? "#FEF2F2"
+                        : newPriority === "medium"
+                          ? "#FFF7ED"
+                          : newPriority === "low"
+                            ? "#F0FDF4"
+                            : "white"
+                    }
                     fontWeight="800"
                     fontSize="sm"
-                    color="blackAlpha.800"
-                    borderColor="blackAlpha.300"
+                    color={
+                      newPriority === "high"
+                        ? "#DC2626"
+                        : newPriority === "medium"
+                          ? "#EA580C"
+                          : newPriority === "low"
+                            ? "#16A34A"
+                            : "blackAlpha.500"
+                    }
+                    borderColor={
+                      newPriority === "high"
+                        ? "#FECACA"
+                        : newPriority === "medium"
+                          ? "#FED7AA"
+                          : newPriority === "low"
+                            ? "#BBF7D0"
+                            : "rgba(0,0,0,0.16)"
+                    }
+                    _hover={{
+                      borderColor: "#93C5FD",
+                      bg: newPriority ? undefined : "#F8FAFC",
+                    }}
                     onClick={() => setPriorityOpen((v) => !v)}
                   >
                     <HStack gap={3}>
-                      <Icon as={FiFlag} color="blackAlpha.700" />
+                      <Icon
+                        as={FiFlag}
+                        color={
+                          newPriority === "high"
+                            ? "#DC2626"
+                            : newPriority === "medium"
+                              ? "#EA580C"
+                              : newPriority === "low"
+                                ? "#16A34A"
+                                : "blackAlpha.500"
+                        }
+                      />
                       <Text>{priorityLabel(newPriority)}</Text>
                     </HStack>
+                    <Icon
+                      as={FiPlus}
+                      style={{
+                        transform: priorityOpen
+                          ? "rotate(45deg)"
+                          : "rotate(0deg)",
+                        transition: "0.2s",
+                      }}
+                      color="blackAlpha.400"
+                    />
                   </Button>
 
                   {priorityOpen ? (
                     <Box
                       position="absolute"
-                      top="calc(100% + 10px)"
+                      top="calc(100% + 8px)"
                       left={0}
+                      w="100%"
                       bg="white"
                       borderWidth="1px"
-                      borderColor="blackAlpha.200"
+                      borderColor="#E2E8F0"
                       borderRadius="16px"
-                      boxShadow="0 14px 40px rgba(0,0,0,0.15)"
+                      boxShadow="0 20px 40px -4px rgba(0,0,0,0.16)"
                       p={2}
-                      minW="220px"
                       zIndex={101}
-                      color="blackAlpha.800"
                     >
                       <Stack gap={1}>
                         {(
                           [
                             {
                               key: "low" as const,
-                              label: "Low",
-                              dotBg: "green.400",
-                              dotRing: "green.200",
+                              label: "Low 🍃",
+                              bg: "#F0FDF4",
+                              color: "#16A34A",
+                              border: "#BBF7D0",
                             },
                             {
                               key: "medium" as const,
-                              label: "Medium",
-                              dotBg: "yellow.400",
-                              dotRing: "yellow.200",
+                              label: "Medium ⚡",
+                              bg: "#FFF7ED",
+                              color: "#EA580C",
+                              border: "#FED7AA",
                             },
                             {
                               key: "high" as const,
-                              label: "High",
-                              dotBg: "red.400",
-                              dotRing: "red.200",
+                              label: "High 🔥",
+                              bg: "#FEF2F2",
+                              color: "#DC2626",
+                              border: "#FECACA",
                             },
                           ] as const
                         ).map((opt) => (
@@ -1332,9 +1392,16 @@ export default function TaskTool() {
                             variant="ghost"
                             justifyContent="space-between"
                             borderRadius="12px"
-                            fontSize="xs"
+                            h="42px"
+                            fontSize="sm"
                             fontWeight="800"
-                            _hover={{ bg: "blackAlpha.100" }}
+                            bg={
+                              newPriority === opt.key ? opt.bg : "transparent"
+                            }
+                            color={
+                              newPriority === opt.key ? opt.color : "black"
+                            }
+                            _hover={{ bg: opt.bg, color: opt.color }}
                             onClick={() => {
                               setNewPriority(opt.key);
                               setPriorityOpen(false);
@@ -1342,25 +1409,15 @@ export default function TaskTool() {
                           >
                             <HStack gap={3}>
                               <Box
-                                w="16px"
-                                h="16px"
+                                w="10px"
+                                h="10px"
                                 borderRadius="full"
-                                bg={opt.dotRing}
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                              >
-                                <Box
-                                  w="8px"
-                                  h="8px"
-                                  borderRadius="full"
-                                  bg={opt.dotBg}
-                                />
-                              </Box>
-                              <Text color="blackAlpha.800">{opt.label}</Text>
+                                bg={opt.color}
+                              />
+                              <Text>{opt.label}</Text>
                             </HStack>
                             {newPriority === opt.key ? (
-                              <Icon as={FiCheck} color="blackAlpha.700" />
+                              <Icon as={FiCheck} />
                             ) : null}
                           </Button>
                         ))}
@@ -1376,39 +1433,59 @@ export default function TaskTool() {
                     h="56px"
                     px={5}
                     w="100%"
-                    justifyContent="flex-start"
-                    bg="white"
+                    justifyContent="space-between"
+                    bg={newReminder !== "" ? "#F3E8FF" : "white"}
                     fontWeight="800"
                     fontSize="sm"
-                    color="blackAlpha.800"
-                    borderColor="blackAlpha.300"
+                    color={newReminder !== "" ? "#7C3AED" : "blackAlpha.500"}
+                    borderColor={
+                      newReminder !== "" ? "#D8B4FE" : "rgba(0,0,0,0.16)"
+                    }
+                    _hover={{
+                      borderColor: "#93C5FD",
+                      bg: newReminder !== "" ? undefined : "#F8FAFC",
+                    }}
                     onClick={() => setReminderOpen((v) => !v)}
                   >
                     <HStack gap={3}>
-                      <Icon as={FiBell} color="blackAlpha.700" />
+                      <Icon
+                        as={FiBell}
+                        color={
+                          newReminder !== "" ? "#7C3AED" : "blackAlpha.500"
+                        }
+                      />
                       <Text>{reminderLabel(newReminder)}</Text>
                     </HStack>
+                    <Icon
+                      as={FiPlus}
+                      style={{
+                        transform: reminderOpen
+                          ? "rotate(45deg)"
+                          : "rotate(0deg)",
+                        transition: "0.2s",
+                      }}
+                      color="blackAlpha.400"
+                    />
                   </Button>
 
                   {reminderOpen ? (
                     <Box
                       position="absolute"
-                      top="calc(100% + 10px)"
+                      top="calc(100% + 8px)"
                       left={0}
+                      w="100%"
                       bg="white"
                       borderWidth="1px"
-                      borderColor="blackAlpha.200"
+                      borderColor="#E2E8F0"
                       borderRadius="16px"
-                      boxShadow="0 14px 40px rgba(0,0,0,0.15)"
+                      boxShadow="0 20px 40px -4px rgba(0,0,0,0.16)"
                       p={2}
-                      minW="240px"
                       zIndex={101}
-                      color="blackAlpha.800"
                     >
                       <Stack gap={1}>
                         {(
                           [
-                            { v: "" as const, label: "Reminders" },
+                            { v: "" as const, label: "No reminder" },
                             { v: 0 as const, label: "At time" },
                             { v: 30 as const, label: "30 min before" },
                             { v: 60 as const, label: "1 hour before" },
@@ -1420,17 +1497,31 @@ export default function TaskTool() {
                             variant="ghost"
                             justifyContent="space-between"
                             borderRadius="12px"
-                            fontSize="xs"
+                            h="42px"
+                            fontSize="sm"
                             fontWeight="800"
-                            _hover={{ bg: "blackAlpha.100" }}
+                            bg={
+                              newReminder === opt.v && opt.v !== ""
+                                ? "#F3E8FF"
+                                : "transparent"
+                            }
+                            color={
+                              newReminder === opt.v && opt.v !== ""
+                                ? "#7C3AED"
+                                : "black"
+                            }
+                            _hover={{
+                              bg: opt.v === "" ? "blackAlpha.50" : "#F3E8FF",
+                              color: opt.v === "" ? "black" : "#7C3AED",
+                            }}
                             onClick={() => {
                               setNewReminder(opt.v);
                               setReminderOpen(false);
                             }}
                           >
-                            <Text color="blackAlpha.800">{opt.label}</Text>
+                            <Text>{opt.label}</Text>
                             {newReminder === opt.v ? (
-                              <Icon as={FiCheck} color="blackAlpha.700" />
+                              <Icon as={FiCheck} />
                             ) : null}
                           </Button>
                         ))}
@@ -1439,6 +1530,18 @@ export default function TaskTool() {
                   ) : null}
                 </Box>
               </SimpleGrid>
+
+              <Textarea
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Description"
+                bg="white"
+                borderRadius="14px"
+                minH="120px"
+                fontSize="md"
+                color="black"
+                _placeholder={{ color: "blackAlpha.500" }}
+              />
 
               <Box h="1px" bg="blackAlpha.200" my={3} />
 
