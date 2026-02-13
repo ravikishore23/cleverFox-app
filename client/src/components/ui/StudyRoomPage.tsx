@@ -15,16 +15,18 @@ import { useEffect, useMemo, useState } from "react";
 import {
   FiCalendar,
   FiCheckSquare,
-  FiChevronDown,
+  FiChevronLeft,
   FiClock,
   FiEdit3,
   FiHome,
   FiImage,
   FiMaximize2,
+  FiMinimize2,
   FiMoreHorizontal,
   FiMusic,
   FiUser,
   FiVideo,
+  FiX,
 } from "react-icons/fi";
 // import { TbBrain } from "react-icons/tb";
 import TimerTool from "./studyroom/tools/TimerTool";
@@ -57,6 +59,39 @@ type ToolKey =
 
 export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
   const [activeTool, setActiveTool] = useState<ToolKey>("task");
+  // Keep a history stack. Initial is just "timer".
+  const [history, setHistory] = useState<ToolKey[]>(["timer", "task"]);
+  // NOTE: Initial "task" is activeTool, so stack should reflect that if we want back button to work immediately?
+  // Actually, if activeTool is "task", history should be ["timer", "task"] if we consider the flow.
+  // But let's assume we start at "task" directly. Maybe history is just ["task"].
+  // If we want Back to take us to Timer (Home), we should init as ["timer", "task"].
+  // But activeTool starts at "task". Let's stick with history tracking *changes*.
+  // If we just init history with the ActiveTool, back button is disabled.
+  // User wants "back to previous tab".
+
+  const [isPanelMaximized, setIsPanelMaximized] = useState(false);
+
+  const navigateTo = (tool: ToolKey) => {
+    if (activeTool === tool) return;
+    setHistory((prev) => [...prev, tool]);
+    setActiveTool(tool);
+  };
+
+  const navigateBack = () => {
+    if (history.length <= 1) return;
+    const newHistory = [...history];
+    newHistory.pop(); // Remove current
+    const prevTool = newHistory[newHistory.length - 1]; // Get previous
+    setHistory(newHistory);
+    setActiveTool(prevTool);
+  };
+
+  // Sync initial state if needed. But simple history append is safer.
+  // Since we hardcoded activeTool='task', let's fix history init:
+  // history=['timer', 'task'] implies we came from timer?
+  // If the app starts on 'task', maybe there is no 'previous'.
+  // But typically 'timer' is the dashboard. So let's assume history=['timer', 'task'].
+
   const [isMusicOpen, setIsMusicOpen] = useState(false);
   const [isTimerOpen, setIsTimerOpen] = useState(true);
 
@@ -157,30 +192,50 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
     { key: "calendar", label: "Calendar", icon: FiCalendar },
   ];
 
-  const panelTitle =
-    sidebarItems.find((i) => i.key === activeTool)?.label ?? "Tool";
-
   const panel = (
     <Box
-      w={{ base: "calc(100vw - 120px)", sm: "420px" }}
-      maxW="520px"
-      bg="blackAlpha.700"
-      borderRadius="18px"
-      borderWidth="1px"
-      borderColor="whiteAlpha.200"
-      backdropFilter="blur(10px)"
-      boxShadow="0 18px 50px rgba(0,0,0,0.35)"
+      position={isPanelMaximized ? "fixed" : "relative"}
+      top={isPanelMaximized ? 0 : "auto"}
+      left={isPanelMaximized ? 0 : "auto"}
+      zIndex={isPanelMaximized ? 9999 : "auto"}
+      w={
+        isPanelMaximized
+          ? "100vw"
+          : { base: "calc(100vw - 120px)", md: "calc(100vw - 150px)" }
+      }
+      h={isPanelMaximized ? "100vh" : "calc(100vh - 40px)"}
+      bg="#18181b"
+      borderRadius={isPanelMaximized ? 0 : "18px"}
+      boxShadow="0 18px 50px rgba(0,0,0,0.5)"
       overflow="hidden"
+      display="flex"
+      flexDirection="column"
     >
       <Flex
         align="center"
         justify="space-between"
         px={5}
         py={4}
-        borderBottomWidth="1px"
-        borderBottomColor="whiteAlpha.200"
+        borderBottom="1px solid"
+        borderColor="whiteAlpha.100"
+        flexShrink={0}
       >
         <HStack gap={3}>
+          {history.length > 1 && (
+            <IconButton
+              aria-label="Back"
+              variant="ghost"
+              size="sm"
+              color="white"
+              _hover={{ bg: "whiteAlpha.200" }}
+              onClick={navigateBack}
+              mr={-1}
+            >
+              <Icon as={FiChevronLeft} boxSize={5} />
+            </IconButton>
+          )}
+
+          {/* Icon Logic */}
           <Box
             w="34px"
             h="34px"
@@ -190,15 +245,23 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
             alignItems="center"
             justifyContent="center"
           >
-            <Icon
-              as={sidebarItems.find((i) => i.key === activeTool)?.icon}
-              color="white"
-              boxSize={5}
-            />
+            {sidebarItems.find((i) => i.key === activeTool)?.image ? (
+              <Image
+                src={sidebarItems.find((i) => i.key === activeTool)?.image}
+                boxSize={5}
+                objectFit="contain"
+              />
+            ) : (
+              <Icon
+                as={sidebarItems.find((i) => i.key === activeTool)?.icon}
+                color="white"
+                boxSize={5}
+              />
+            )}
           </Box>
           <Stack gap={0}>
             <Heading size="sm" color="white">
-              {panelTitle}
+              {sidebarItems.find((i) => i.key === activeTool)?.label ?? "Tool"}
             </Heading>
             <Text fontSize="xs" color="whiteAlpha.800">
               {user ? user.name : "Guest"}
@@ -206,32 +269,61 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
           </Stack>
         </HStack>
 
-        <IconButton
-          aria-label="Close tool"
-          variant="ghost"
-          size="sm"
-          color="white"
-          _hover={{ bg: "whiteAlpha.200" }}
-          onClick={() => setActiveTool("timer")}
-        >
-          <Icon as={FiChevronDown} />
-        </IconButton>
+        <HStack gap={1}>
+          <IconButton
+            aria-label={isPanelMaximized ? "Restore" : "Full Screen"}
+            variant="solid"
+            bg="transparent"
+            size="sm"
+            color="white"
+            _hover={{ bg: "whiteAlpha.200" }}
+            onClick={() => setIsPanelMaximized(!isPanelMaximized)}
+          >
+            <Icon
+              as={isPanelMaximized ? FiMinimize2 : FiMaximize2}
+              boxSize={4}
+            />
+          </IconButton>
+          <IconButton
+            aria-label="Close tool"
+            variant="solid"
+            bg="transparent"
+            size="sm"
+            color="white"
+            _hover={{ bg: "red.500", color: "white" }}
+            onClick={() => navigateTo("timer")}
+          >
+            <Icon as={FiX} boxSize={4} />
+          </IconButton>
+        </HStack>
       </Flex>
 
-      <Box px={5} py={5} color="white">
+      <Box
+        px={0}
+        py={0}
+        color="white"
+        flex="1"
+        overflow="hidden"
+        display="flex"
+        flexDirection="column"
+      >
         {activeTool === "task" && <TaskTool />}
 
         {activeTool === "foxai" && <FoxAiTool />}
 
         {(activeTool === "video" || activeTool === "image") && (
-          <Stack gap={2}>
-            <Text fontSize="sm" color="whiteAlpha.900">
-              {panelTitle} tool coming next.
-            </Text>
-            <Text fontSize="sm" color="whiteAlpha.700">
-              For now we’re focusing on Music first.
-            </Text>
-          </Stack>
+          <Box p={5}>
+            <Stack gap={2}>
+              <Text fontSize="sm" color="whiteAlpha.900">
+                {sidebarItems.find((i) => i.key === activeTool)?.label ??
+                  "Tool"}{" "}
+                tool coming next.
+              </Text>
+              <Text fontSize="sm" color="whiteAlpha.700">
+                For now we’re focusing on Music first.
+              </Text>
+            </Stack>
+          </Box>
         )}
       </Box>
     </Box>
@@ -376,7 +468,7 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
                   } else if (isTimer) {
                     setIsTimerOpen((prev) => !prev);
                   } else {
-                    setActiveTool(item.key);
+                    navigateTo(item.key);
                   }
                 }}
                 role="group"
@@ -479,7 +571,7 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
         <Box mt={3}>
           <Box
             as="button"
-            onClick={() => setActiveTool("timer")}
+            onClick={() => navigateTo("timer")}
             borderRadius="16px"
             _hover={{ bg: "whiteAlpha.200" }}
             py={3}
@@ -506,14 +598,14 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
         zIndex={2}
       >
         {activeTool === "task" ? (
-          <TaskTool onClose={() => setActiveTool("timer")} />
+          <TaskTool onClose={() => navigateTo("timer")} />
         ) : activeTool === "notes" ? (
-          <NotesTool onClose={() => setActiveTool("timer")} />
+          <NotesTool onClose={() => navigateTo("timer")} />
         ) : activeTool === "calendar" ? (
-          <CalendarTool onClose={() => setActiveTool("timer")} />
+          <CalendarTool onClose={() => navigateTo("timer")} />
         ) : activeTool === "image" ? (
           <ImageTool
-            onClose={() => setActiveTool("timer")}
+            onClose={() => navigateTo("timer")}
             onBackgroundSelect={(src) => {
               setBackgroundImage(src);
               setBackgroundVideo(null); // Clear video if image selected
@@ -522,7 +614,7 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
           />
         ) : activeTool === "video" ? (
           <VideoTool
-            onClose={() => setActiveTool("timer")}
+            onClose={() => navigateTo("timer")}
             onVideoSelect={(src) => {
               setBackgroundVideo(src);
               // We don't unset image, but video overlays it

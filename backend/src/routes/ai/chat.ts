@@ -8,6 +8,16 @@ export const aiRouter = Router();
 aiRouter.post("/ai/chat", async (req, res, next) => {
   try {
     const body = req.body as ChatRequest;
+
+    if (
+      !body.messages ||
+      !Array.isArray(body.messages) ||
+      body.messages.length === 0
+    ) {
+      res.status(400).json({ ok: false, error: "messages array is required" });
+      return;
+    }
+
     const provider = makeProvider(process.env);
 
     const messages = [buildStudyRoomSystemPrompt(), ...(body.messages ?? [])];
@@ -22,6 +32,16 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
 
     res.json(response);
   } catch (err) {
-    next(err);
+    // Return a structured error instead of passing to generic handler
+    // so the frontend always gets JSON
+    const message = err instanceof Error ? err.message : "Unknown error";
+    const isRateLimit =
+      message.includes("429") || message.includes("rate limit");
+    res.status(isRateLimit ? 429 : 500).json({
+      ok: false,
+      error: isRateLimit
+        ? "AI rate limit reached. Please wait a moment and try again."
+        : message,
+    });
   }
 });
