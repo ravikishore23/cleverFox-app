@@ -23,7 +23,9 @@ export function makeProvider(env: NodeJS.ProcessEnv): LlmProvider {
   if (provider === "openai") {
     const apiKey = env.OPENAI_API_KEY;
     if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
-    return new OpenAiProvider(apiKey);
+    const baseUrl = env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+    const defaultModel = env.OPENAI_MODEL;
+    return new OpenAiProvider(apiKey, baseUrl, defaultModel);
   }
 
   return new MockProvider();

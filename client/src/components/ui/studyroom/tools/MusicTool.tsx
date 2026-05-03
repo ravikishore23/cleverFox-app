@@ -120,28 +120,58 @@ type Track = {
 
 const BUILTIN_TRACKS: Track[] = [
   {
-    id: "pixabay-rain",
-    title: "Rain (ambient)",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_9a43f65f2f.mp3?filename=rain-ambient-113985.mp3",
+    id: "barradeen-bedtime-after-a-coffee",
+    title: "Bedtime After a Coffee",
+    url: "/musics/barradeen-bedtime-after-a-coffee(chosic.com).mp3",
     kind: "ambient",
   },
   {
-    id: "pixabay-brown-noise",
-    title: "Brown noise (focus)",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_7b2a7b4c9f.mp3?filename=brown-noise-110324.mp3",
-    kind: "focus",
-  },
-  {
-    id: "pixabay-soft-piano",
-    title: "Soft piano (lofi)",
-    url: "https://cdn.pixabay.com/download/audio/2022/10/25/audio_bfa3bf6c5e.mp3?filename=soft-piano-ambient-121928.mp3",
+    id: "butterfly",
+    title: "Butterfly",
+    url: "/musics/Butterfly-chosic.com_.mp3",
     kind: "lofi",
   },
   {
-    id: "pixabay-wind",
-    title: "Wind (ambient)",
-    url: "https://cdn.pixabay.com/download/audio/2022/03/09/audio_912f90a8b1.mp3?filename=wind-110089.mp3",
+    id: "exploration",
+    title: "Exploration",
+    url: "/musics/Exploration(chosic.com).mp3",
+    kind: "focus",
+  },
+  {
+    id: "fallen",
+    title: "Fallen",
+    url: "/musics/Fallen-chosic.com_.mp3",
     kind: "ambient",
+  },
+  {
+    id: "in-the-moment",
+    title: "In the Moment",
+    url: "/musics/In-the-Moment(chosic.com).mp3",
+    kind: "focus",
+  },
+  {
+    id: "magical-moments",
+    title: "Magical Moments",
+    url: "/musics/Magical-Moments-chosic.com_.mp3",
+    kind: "ambient",
+  },
+  {
+    id: "once-in-a-lifetime",
+    title: "Once in a Lifetime",
+    url: "/musics/Once-in-a-Lifetime-chosic.com_.mp3",
+    kind: "lofi",
+  },
+  {
+    id: "torn",
+    title: "Torn",
+    url: "/musics/Torn(chosic.com).mp3",
+    kind: "lofi",
+  },
+  {
+    id: "when-i-was-a-boy",
+    title: "When I Was a Boy",
+    url: "/musics/When-I-Was-A-Boy(chosic.com).mp3",
+    kind: "focus",
   },
 ];
 
@@ -178,12 +208,46 @@ export default function MusicTool({
   const youTubePlayerRef = useRef<YouTubePlayer | null>(null);
   const pendingYouTubePlayRef = useRef(false);
   const youTubeIframeId = "cleverfox-youtube-embed";
-  const [selectedId, setSelectedId] = useState<string>(BUILTIN_TRACKS[0]?.id);
+  const [selectedId, setSelectedId] = useState<string>(() => {
+    try { const raw = window.localStorage.getItem("cf.music.selectedId"); if (raw) return raw; } catch { /* ignore */ }
+    return BUILTIN_TRACKS[0]?.id;
+  });
   const [playing, setPlaying] = useState(false);
   const [urlInput, setUrlInput] = useState("");
-  const [savedUrl, setSavedUrl] = useState<string | null>(null);
+  const [savedUrl, setSavedUrl] = useState<string | null>(() => {
+    try { const raw = window.localStorage.getItem("cf.music.savedUrl"); if (raw) return raw; } catch { /* ignore */ }
+    return null;
+  });
+  const [playbackSource, setPlaybackSource] = useState<
+    "builtin" | "spotify" | "youtube"
+  >(() => {
+    try {
+      const raw = window.localStorage.getItem("cf.music.playbackSource");
+      if (raw === "builtin" || raw === "spotify" || raw === "youtube") return raw;
+    } catch { /* ignore */ }
+    return "builtin";
+  });
   const [expanded, setExpanded] = useState(false);
-  const [bgColor, setBgColor] = useState(BG_COLORS[0]);
+  const [bgColor, setBgColor] = useState(() => {
+    try { const raw = window.localStorage.getItem("cf.music.bgColor"); if (raw) return raw; } catch { /* ignore */ }
+    return BG_COLORS[0];
+  });
+
+  useEffect(() => {
+    try { window.localStorage.setItem("cf.music.selectedId", selectedId); } catch { /* ignore */ }
+  }, [selectedId]);
+  useEffect(() => {
+    try {
+      if (savedUrl) window.localStorage.setItem("cf.music.savedUrl", savedUrl);
+      else window.localStorage.removeItem("cf.music.savedUrl");
+    } catch { /* ignore */ }
+  }, [savedUrl]);
+  useEffect(() => {
+    try { window.localStorage.setItem("cf.music.playbackSource", playbackSource); } catch { /* ignore */ }
+  }, [playbackSource]);
+  useEffect(() => {
+    try { window.localStorage.setItem("cf.music.bgColor", bgColor); } catch { /* ignore */ }
+  }, [bgColor]);
   const [pos, setPos] = useState<WidgetPos>(() => {
     if (typeof window === "undefined") return { x: 24, y: 96 };
     try {
@@ -260,7 +324,7 @@ export default function MusicTool({
     return BUILTIN_TRACKS.find((t) => t.id === selectedId) ?? BUILTIN_TRACKS[0];
   }, [selectedId]);
 
-  const playlist = useMemo(() => BUILTIN_TRACKS.slice(0, 4), []);
+  const playlist = useMemo(() => BUILTIN_TRACKS, []);
 
   const spotifyClientId =
     (import.meta.env.VITE_SPOTIFY_CLIENT_ID as string | undefined) ?? null;
@@ -400,9 +464,14 @@ export default function MusicTool({
     try {
       await audio.play();
       setPlaying(true);
+      setStatusMessage(null);
     } catch {
       // Autoplay blocked until user gesture; user can press Play again.
       setPlaying(false);
+      setStatusMessage({
+        kind: "error",
+        text: "Could not start audio. Try another track.",
+      });
     }
   }
 
@@ -685,7 +754,11 @@ export default function MusicTool({
                     <Flex
                       key={t.id}
                       as="button"
-                      onClick={() => setSelectedId(t.id)}
+                      onClick={() => {
+                        setSelectedId(t.id);
+                        setPlaybackSource("builtin");
+                        setStatusMessage(null);
+                      }}
                       align="center"
                       gap={3}
                       opacity={t.id === selectedId ? 1 : 0.85}
@@ -731,11 +804,24 @@ export default function MusicTool({
             bg="transparent"
             _hover={{ bg: "whiteAlpha.200" }}
             onClick={() => {
-              if (savedSpotify) {
+              if (playbackSource === "spotify" && savedSpotify) {
+                if (!spotifyToken) {
+                  setPlaybackSource("builtin");
+                  setStatusMessage({
+                    kind: "info",
+                    text: "Spotify not connected. Switched to built-in music.",
+                  });
+                  return togglePlay();
+                }
                 void (playing ? spotifyDoPause() : spotifyPlay());
                 return;
               }
-              if (youTubeEmbedUrlWithApi) return youTubeTogglePlay();
+              if (playbackSource === "youtube" && youTubeEmbedUrlWithApi) {
+                return youTubeTogglePlay();
+              }
+              if (playbackSource !== "builtin") {
+                setPlaybackSource("builtin");
+              }
               togglePlay();
             }}
           >
@@ -815,6 +901,27 @@ export default function MusicTool({
                 const url = urlInput.trim();
                 if (!url) return;
                 setSavedUrl(url);
+                if (parseSpotifyUrlToUri(url)) {
+                  setPlaybackSource("spotify");
+                  setStatusMessage({
+                    kind: "info",
+                    text: "Loaded Spotify link. Play controls Spotify.",
+                  });
+                  return;
+                }
+                if (parseYouTubeUrl(url)) {
+                  setPlaybackSource("youtube");
+                  setStatusMessage({
+                    kind: "info",
+                    text: "Loaded YouTube link. Play controls YouTube.",
+                  });
+                  return;
+                }
+                setPlaybackSource("builtin");
+                setStatusMessage({
+                  kind: "error",
+                  text: "Unsupported URL. Using built-in playlist.",
+                });
               }}
             >
               Load

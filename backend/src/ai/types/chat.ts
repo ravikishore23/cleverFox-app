@@ -3,6 +3,11 @@ export type AiRole = "system" | "user" | "assistant";
 export type AiMessage = {
   role: AiRole;
   content: string;
+  attachments?: {
+    type: string;
+    data: string;
+    name: string;
+  }[];
 };
 
 export type ChatRequest = {

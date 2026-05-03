@@ -1,0 +1,501 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/ui/SignupPage.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=b3f1cab8"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import {
+  Box,
+  Button,
+  Container,
+  Heading,
+  HStack,
+  Icon,
+  Image,
+  Input,
+  Stack,
+  Text
+} from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/@chakra-ui_react.js?v=b3f1cab8";
+import __vite__cjsImport2_react from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react.js?v=b3f1cab8"; const useMemo = __vite__cjsImport2_react["useMemo"]; const useState = __vite__cjsImport2_react["useState"];
+import { FaCheckCircle } from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react-icons_fa.js?v=b3f1cab8";
+import { FiEye, FiEyeOff } from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react-icons_fi.js?v=b3f1cab8";
+export default function SignupPage({
+  onRegister,
+  onGoToLogin
+}) {
+  _s();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const inputStyle = {
+    h: "44px",
+    px: 4,
+    borderRadius: "10px",
+    bg: "white",
+    borderWidth: "1px",
+    borderColor: "gray.200",
+    color: "gray.900",
+    _placeholder: { color: "gray.400" },
+    _hover: { borderColor: "gray.300" },
+    _focusVisible: { borderColor: "#1877F2", boxShadow: "0 0 0 1px #1877F2" }
+  };
+  const passwordRules = useMemo(() => {
+    const hasMinLength = password.length >= 8;
+    const hasLetter = /[A-Za-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    return { hasMinLength, hasLetter, hasNumber, hasSpecial };
+  }, [password]);
+  return /* @__PURE__ */ jsxDEV(Box, { minH: "100vh", bg: "#FBE6DC", px: 4, display: "flex", alignItems: "center", children: /* @__PURE__ */ jsxDEV(Container, { maxW: "md", py: { base: 10, md: 14 }, children: /* @__PURE__ */ jsxDEV(
+    Box,
+    {
+      bg: "white",
+      borderRadius: "12px",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+      borderWidth: "1px",
+      borderColor: "blackAlpha.200",
+      px: { base: 6, md: 8 },
+      py: { base: 7, md: 9 },
+      children: [
+        /* @__PURE__ */ jsxDEV(HStack, { gap: 3, mb: 6, justify: { base: "center", md: "flex-start" }, children: [
+          /* @__PURE__ */ jsxDEV(Image, { src: "/guide-fox.png", alt: "Clever Fox", boxSize: "34px" }, void 0, false, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 65,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(
+            Text,
+            {
+              fontFamily: "'Passero One', ui-sans-serif",
+              fontSize: "28px",
+              color: "gray.900",
+              children: "clever Fox"
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 66,
+              columnNumber: 13
+            },
+            this
+          )
+        ] }, void 0, true, {
+          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+          lineNumber: 64,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV(
+          Heading,
+          {
+            as: "h1",
+            fontSize: "22px",
+            fontWeight: "600",
+            color: "gray.900",
+            mb: 6,
+            textAlign: { base: "center", md: "left" },
+            children: "Register a new user"
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 75,
+            columnNumber: 11
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(Stack, { gap: 4, children: [
+          /* @__PURE__ */ jsxDEV(Box, { children: [
+            /* @__PURE__ */ jsxDEV(Text, { fontSize: "sm", color: "gray.700", mb: 2, children: "Name" }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 88,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(Input, { placeholder: "Enter name", ...inputStyle }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 91,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 87,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(Box, { children: [
+            /* @__PURE__ */ jsxDEV(Text, { fontSize: "sm", color: "gray.700", mb: 2, children: "Mobile" }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 95,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(Input, { placeholder: "Enter mobile number", ...inputStyle }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 98,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 94,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(Box, { children: [
+            /* @__PURE__ */ jsxDEV(Text, { fontSize: "sm", color: "gray.700", mb: 2, children: "Email address" }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 102,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(Input, { placeholder: "Enter email", ...inputStyle }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 105,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 101,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(Box, { children: [
+            /* @__PURE__ */ jsxDEV(Text, { fontSize: "sm", color: "gray.700", mb: 2, children: "Password" }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 109,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(Box, { position: "relative", children: [
+              /* @__PURE__ */ jsxDEV(
+                Input,
+                {
+                  type: showPassword ? "text" : "password",
+                  placeholder: "Enter a strong password",
+                  pr: "44px",
+                  ...inputStyle,
+                  value: password,
+                  onChange: (e) => setPassword(e.target.value)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                  lineNumber: 113,
+                  columnNumber: 17
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                Button,
+                {
+                  "aria-label": showPassword ? "Hide password" : "Show password",
+                  variant: "ghost",
+                  size: "sm",
+                  position: "absolute",
+                  right: "8px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  minW: "auto",
+                  px: 2,
+                  onClick: () => setShowPassword((v) => !v),
+                  children: /* @__PURE__ */ jsxDEV(
+                    Icon,
+                    {
+                      as: showPassword ? FiEyeOff : FiEye,
+                      boxSize: 5,
+                      color: "gray.600"
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                      lineNumber: 133,
+                      columnNumber: 19
+                    },
+                    this
+                  )
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                  lineNumber: 121,
+                  columnNumber: 17
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 112,
+              columnNumber: 15
+            }, this),
+            password.length > 0 && /* @__PURE__ */ jsxDEV(Box, { mt: 3, borderRadius: "8px", bg: "gray.50", p: 3, children: [
+              /* @__PURE__ */ jsxDEV(Text, { fontSize: "xs", color: "gray.700", fontWeight: "600", mb: 2, children: "Password must include:" }, void 0, false, {
+                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                lineNumber: 142,
+                columnNumber: 19
+              }, this),
+              /* @__PURE__ */ jsxDEV(Stack, { gap: 1, children: [
+                /* @__PURE__ */ jsxDEV(
+                  Rule,
+                  {
+                    ok: passwordRules.hasMinLength,
+                    text: "At least 8 characters"
+                  },
+                  void 0,
+                  false,
+                  {
+                    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                    lineNumber: 146,
+                    columnNumber: 21
+                  },
+                  this
+                ),
+                /* @__PURE__ */ jsxDEV(Rule, { ok: passwordRules.hasLetter, text: "A letter (A-Z)" }, void 0, false, {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                  lineNumber: 150,
+                  columnNumber: 21
+                }, this),
+                /* @__PURE__ */ jsxDEV(Rule, { ok: passwordRules.hasNumber, text: "A number (0-9)" }, void 0, false, {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                  lineNumber: 151,
+                  columnNumber: 21
+                }, this),
+                /* @__PURE__ */ jsxDEV(
+                  Rule,
+                  {
+                    ok: passwordRules.hasSpecial,
+                    text: "A special character (e.g. @, #, $)"
+                  },
+                  void 0,
+                  false,
+                  {
+                    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                    lineNumber: 152,
+                    columnNumber: 21
+                  },
+                  this
+                )
+              ] }, void 0, true, {
+                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                lineNumber: 145,
+                columnNumber: 19
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 141,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 108,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(Box, { children: [
+            /* @__PURE__ */ jsxDEV(Text, { fontSize: "sm", color: "gray.700", mb: 2, children: "Confirm password" }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 162,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(Box, { position: "relative", children: [
+              /* @__PURE__ */ jsxDEV(
+                Input,
+                {
+                  type: showConfirmPassword ? "text" : "password",
+                  placeholder: "Enter password again",
+                  pr: "44px",
+                  ...inputStyle,
+                  value: confirmPassword,
+                  onChange: (e) => setConfirmPassword(e.target.value)
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                  lineNumber: 166,
+                  columnNumber: 17
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(
+                Button,
+                {
+                  "aria-label": showConfirmPassword ? "Hide password" : "Show password",
+                  variant: "ghost",
+                  size: "sm",
+                  position: "absolute",
+                  right: "8px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  minW: "auto",
+                  px: 2,
+                  onClick: () => setShowConfirmPassword((v) => !v),
+                  children: /* @__PURE__ */ jsxDEV(
+                    Icon,
+                    {
+                      as: showConfirmPassword ? FiEyeOff : FiEye,
+                      boxSize: 5,
+                      color: "gray.600"
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                      lineNumber: 188,
+                      columnNumber: 19
+                    },
+                    this
+                  )
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                  lineNumber: 174,
+                  columnNumber: 17
+                },
+                this
+              )
+            ] }, void 0, true, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 165,
+              columnNumber: 15
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 161,
+            columnNumber: 13
+          }, this),
+          /* @__PURE__ */ jsxDEV(
+            Button,
+            {
+              mt: 2,
+              w: "full",
+              bg: "#1877F2",
+              color: "white",
+              h: "44px",
+              borderRadius: "10px",
+              _hover: { bg: "#166fe5" },
+              onClick: onRegister,
+              children: "Register"
+            },
+            void 0,
+            false,
+            {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 197,
+              columnNumber: 13
+            },
+            this
+          ),
+          /* @__PURE__ */ jsxDEV(HStack, { justify: "center", gap: 2, pt: 1, children: [
+            /* @__PURE__ */ jsxDEV(Text, { fontSize: "sm", color: "gray.500", children: "Have an account already?" }, void 0, false, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+              lineNumber: 211,
+              columnNumber: 15
+            }, this),
+            /* @__PURE__ */ jsxDEV(
+              Button,
+              {
+                variant: "plain",
+                color: "#1877F2",
+                fontSize: "sm",
+                fontWeight: "500",
+                p: 0,
+                h: "auto",
+                minH: "auto",
+                _hover: { textDecoration: "underline" },
+                onClick: onGoToLogin,
+                children: "Login"
+              },
+              void 0,
+              false,
+              {
+                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+                lineNumber: 214,
+                columnNumber: 15
+              },
+              this
+            )
+          ] }, void 0, true, {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+            lineNumber: 210,
+            columnNumber: 13
+          }, this)
+        ] }, void 0, true, {
+          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+          lineNumber: 86,
+          columnNumber: 11
+        }, this)
+      ]
+    },
+    void 0,
+    true,
+    {
+      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+      lineNumber: 55,
+      columnNumber: 9
+    },
+    this
+  ) }, void 0, false, {
+    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+    lineNumber: 54,
+    columnNumber: 7
+  }, this) }, void 0, false, {
+    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+    lineNumber: 53,
+    columnNumber: 5
+  }, this);
+}
+_s(SignupPage, "nOPx0ipK2uzSvB82NVwgkfD06Oo=");
+_c = SignupPage;
+function Rule({ ok, text }) {
+  return /* @__PURE__ */ jsxDEV(HStack, { gap: 2, align: "center", children: [
+    /* @__PURE__ */ jsxDEV(
+      Icon,
+      {
+        as: FaCheckCircle,
+        boxSize: 3.5,
+        color: ok ? "green.500" : "gray.300"
+      },
+      void 0,
+      false,
+      {
+        fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+        lineNumber: 238,
+        columnNumber: 7
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(Text, { fontSize: "xs", color: ok ? "green.700" : "gray.600", children: text }, void 0, false, {
+      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+      lineNumber: 243,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx",
+    lineNumber: 237,
+    columnNumber: 5
+  }, this);
+}
+_c2 = Rule;
+var _c, _c2;
+$RefreshReg$(_c, "SignupPage");
+$RefreshReg$(_c2, "Rule");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "C:/Users/ravik/cleverFox-app/client/src/components/ui/SignupPage.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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SGVhZGluZyIsIkhTdGFjayIsIkljb24iLCJJbWFnZSIsIklucHV0IiwiU3RhY2siLCJUZXh0IiwidXNlTWVtbyIsInVzZVN0YXRlIiwiRmFDaGVja0NpcmNsZSIsIkZpRXllIiwiRmlFeWVPZmYiLCJTaWdudXBQYWdlIiwib25SZWdpc3RlciIsIm9uR29Ub0xvZ2luIiwiX3MiLCJwYXNzd29yZCIsInNldFBhc3N3b3JkIiwiY29uZmlybVBhc3N3b3JkIiwic2V0Q29uZmlybVBhc3N3b3JkIiwic2hvd1Bhc3N3b3JkIiwic2V0U2hvd1Bhc3N3b3JkIiwic2hvd0NvbmZpcm1QYXNzd29yZCIsInNldFNob3dDb25maXJtUGFzc3dvcmQiLCJpbnB1dFN0eWxlIiwiaCIsInB4IiwiYm9yZGVyUmFkaXVzIiwiYmciLCJib3JkZXJXaWR0aCIsImJvcmRlckNvbG9yIiwiY29sb3IiLCJfcGxhY2Vob2xkZXIiLCJfaG92ZXIiLCJfZm9jdXNWaXNpYmxlIiwiYm94U2hhZG93IiwicGFzc3dvcmRSdWxlcyIsImhhc01pbkxlbmd0aCIsImxlbmd0aCIsImhhc0xldHRlciIsInRlc3QiLCJoYXNOdW1iZXIiLCJoYXNTcGVjaWFsIiwiYmFzZSIsIm1kIiwiZSIsInRhcmdldCIsInZhbHVlIiwidiIsInRleHREZWNvcmF0aW9uIiwiUnVsZSIsIm9rIiwidGV4dCIsIl9jMiIsIl9jIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIlNpZ251cFBhZ2UudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCB7XHJcbiAgQm94LFxyXG4gIEJ1dHRvbixcclxuICBDb250YWluZXIsXHJcbiAgSGVhZGluZyxcclxuICBIU3RhY2ssXHJcbiAgSWNvbixcclxuICBJbWFnZSxcclxuICBJbnB1dCxcclxuICBTdGFjayxcclxuICBUZXh0LFxyXG59IGZyb20gXCJAY2hha3JhLXVpL3JlYWN0XCI7XHJcbmltcG9ydCB7IHVzZU1lbW8sIHVzZVN0YXRlIH0gZnJvbSBcInJlYWN0XCI7XHJcbmltcG9ydCB7IEZhQ2hlY2tDaXJjbGUgfSBmcm9tIFwicmVhY3QtaWNvbnMvZmFcIjtcclxuaW1wb3J0IHsgRmlFeWUsIEZpRXllT2ZmIH0gZnJvbSBcInJlYWN0LWljb25zL2ZpXCI7XHJcblxyXG50eXBlIFNpZ251cFBhZ2VQcm9wcyA9IHtcclxuICBvblJlZ2lzdGVyPzogKCkgPT4gdm9pZDtcclxuICBvbkdvVG9Mb2dpbj86ICgpID0+IHZvaWQ7XHJcbn07XHJcblxyXG5leHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBTaWdudXBQYWdlKHtcclxuICBvblJlZ2lzdGVyLFxyXG4gIG9uR29Ub0xvZ2luLFxyXG59OiBTaWdudXBQYWdlUHJvcHMpIHtcclxuICBjb25zdCBbcGFzc3dvcmQsIHNldFBhc3N3b3JkXSA9IHVzZVN0YXRlKFwiXCIpO1xyXG4gIGNvbnN0IFtjb25maXJtUGFzc3dvcmQsIHNldENvbmZpcm1QYXNzd29yZF0gPSB1c2VTdGF0ZShcIlwiKTtcclxuICBjb25zdCBbc2hvd1Bhc3N3b3JkLCBzZXRTaG93UGFzc3dvcmRdID0gdXNlU3RhdGUoZmFsc2UpO1xyXG4gIGNvbnN0IFtzaG93Q29uZmlybVBhc3N3b3JkLCBzZXRTaG93Q29uZmlybVBhc3N3b3JkXSA9IHVzZVN0YXRlKGZhbHNlKTtcclxuXHJcbiAgY29uc3QgaW5wdXRTdHlsZSA9IHtcclxuICAgIGg6IFwiNDRweFwiLFxyXG4gICAgcHg6IDQsXHJcbiAgICBib3JkZXJSYWRpdXM6IFwiMTBweFwiLFxyXG4gICAgYmc6IFwid2hpdGVcIixcclxuICAgIGJvcmRlcldpZHRoOiBcIjFweFwiLFxyXG4gICAgYm9yZGVyQ29sb3I6IFwiZ3JheS4yMDBcIixcclxuICAgIGNvbG9yOiBcImdyYXkuOTAwXCIsXHJcbiAgICBfcGxhY2Vob2xkZXI6IHsgY29sb3I6IFwiZ3JheS40MDBcIiB9LFxyXG4gICAgX2hvdmVyOiB7IGJvcmRlckNvbG9yOiBcImdyYXkuMzAwXCIgfSxcclxuICAgIF9mb2N1c1Zpc2libGU6IHsgYm9yZGVyQ29sb3I6IFwiIzE4NzdGMlwiLCBib3hTaGFkb3c6IFwiMCAwIDAgMXB4ICMxODc3RjJcIiB9LFxyXG4gIH0gYXMgY29uc3Q7XHJcblxyXG4gIGNvbnN0IHBhc3N3b3JkUnVsZXMgPSB1c2VNZW1vKCgpID0+IHtcclxuICAgIGNvbnN0IGhhc01pbkxlbmd0aCA9IHBhc3N3b3JkLmxlbmd0aCA+PSA4O1xyXG4gICAgY29uc3QgaGFzTGV0dGVyID0gL1tBLVphLXpdLy50ZXN0KHBhc3N3b3JkKTtcclxuICAgIGNvbnN0IGhhc051bWJlciA9IC9cXGQvLnRlc3QocGFzc3dvcmQpO1xyXG4gICAgY29uc3QgaGFzU3BlY2lhbCA9IC9bXkEtWmEtejAtOV0vLnRlc3QocGFzc3dvcmQpO1xyXG4gICAgcmV0dXJuIHsgaGFzTWluTGVuZ3RoLCBoYXNMZXR0ZXIsIGhhc051bWJlciwgaGFzU3BlY2lhbCB9O1xyXG4gIH0sIFtwYXNzd29yZF0pO1xyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPEJveCBtaW5IPVwiMTAwdmhcIiBiZz1cIiNGQkU2RENcIiBweD17NH0gZGlzcGxheT1cImZsZXhcIiBhbGlnbkl0ZW1zPVwiY2VudGVyXCI+XHJcbiAgICAgIDxDb250YWluZXIgbWF4Vz1cIm1kXCIgcHk9e3sgYmFzZTogMTAsIG1kOiAxNCB9fT5cclxuICAgICAgICA8Qm94XHJcbiAgICAgICAgICBiZz1cIndoaXRlXCJcclxuICAgICAgICAgIGJvcmRlclJhZGl1cz1cIjEycHhcIlxyXG4gICAgICAgICAgYm94U2hhZG93PVwiMCAxMHB4IDMwcHggcmdiYSgwLDAsMCwwLjA4KVwiXHJcbiAgICAgICAgICBib3JkZXJXaWR0aD1cIjFweFwiXHJcbiAgICAgICAgICBib3JkZXJDb2xvcj1cImJsYWNrQWxwaGEuMjAwXCJcclxuICAgICAgICAgIHB4PXt7IGJhc2U6IDYsIG1kOiA4IH19XHJcbiAgICAgICAgICBweT17eyBiYXNlOiA3LCBtZDogOSB9fVxyXG4gICAgICAgID5cclxuICAgICAgICAgIDxIU3RhY2sgZ2FwPXszfSBtYj17Nn0ganVzdGlmeT17eyBiYXNlOiBcImNlbnRlclwiLCBtZDogXCJmbGV4LXN0YXJ0XCIgfX0+XHJcbiAgICAgICAgICAgIDxJbWFnZSBzcmM9XCIvZ3VpZGUtZm94LnBuZ1wiIGFsdD1cIkNsZXZlciBGb3hcIiBib3hTaXplPVwiMzRweFwiIC8+XHJcbiAgICAgICAgICAgIDxUZXh0XHJcbiAgICAgICAgICAgICAgZm9udEZhbWlseT1cIidQYXNzZXJvIE9uZScsIHVpLXNhbnMtc2VyaWZcIlxyXG4gICAgICAgICAgICAgIGZvbnRTaXplPVwiMjhweFwiXHJcbiAgICAgICAgICAgICAgY29sb3I9XCJncmF5LjkwMFwiXHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICBjbGV2ZXIgRm94XHJcbiAgICAgICAgICAgIDwvVGV4dD5cclxuICAgICAgICAgIDwvSFN0YWNrPlxyXG5cclxuICAgICAgICAgIDxIZWFkaW5nXHJcbiAgICAgICAgICAgIGFzPVwiaDFcIlxyXG4gICAgICAgICAgICBmb250U2l6ZT1cIjIycHhcIlxyXG4gICAgICAgICAgICBmb250V2VpZ2h0PVwiNjAwXCJcclxuICAgICAgICAgICAgY29sb3I9XCJncmF5LjkwMFwiXHJcbiAgICAgICAgICAgIG1iPXs2fVxyXG4gICAgICAgICAgICB0ZXh0QWxpZ249e3sgYmFzZTogXCJjZW50ZXJcIiwgbWQ6IFwibGVmdFwiIH19XHJcbiAgICAgICAgICA+XHJcbiAgICAgICAgICAgIFJlZ2lzdGVyIGEgbmV3IHVzZXJcclxuICAgICAgICAgIDwvSGVhZGluZz5cclxuXHJcbiAgICAgICAgICA8U3RhY2sgZ2FwPXs0fT5cclxuICAgICAgICAgICAgPEJveD5cclxuICAgICAgICAgICAgICA8VGV4dCBmb250U2l6ZT1cInNtXCIgY29sb3I9XCJncmF5LjcwMFwiIG1iPXsyfT5cclxuICAgICAgICAgICAgICAgIE5hbWVcclxuICAgICAgICAgICAgICA8L1RleHQ+XHJcbiAgICAgICAgICAgICAgPElucHV0IHBsYWNlaG9sZGVyPVwiRW50ZXIgbmFtZVwiIHsuLi5pbnB1dFN0eWxlfSAvPlxyXG4gICAgICAgICAgICA8L0JveD5cclxuXHJcbiAgICAgICAgICAgIDxCb3g+XHJcbiAgICAgICAgICAgICAgPFRleHQgZm9udFNpemU9XCJzbVwiIGNvbG9yPVwiZ3JheS43MDBcIiBtYj17Mn0+XHJcbiAgICAgICAgICAgICAgICBNb2JpbGVcclxuICAgICAgICAgICAgICA8L1RleHQ+XHJcbiAgICAgICAgICAgICAgPElucHV0IHBsYWNlaG9sZGVyPVwiRW50ZXIgbW9iaWxlIG51bWJlclwiIHsuLi5pbnB1dFN0eWxlfSAvPlxyXG4gICAgICAgICAgICA8L0JveD5cclxuXHJcbiAgICAgICAgICAgIDxCb3g+XHJcbiAgICAgICAgICAgICAgPFRleHQgZm9udFNpemU9XCJzbVwiIGNvbG9yPVwiZ3JheS43MDBcIiBtYj17Mn0+XHJcbiAgICAgICAgICAgICAgICBFbWFpbCBhZGRyZXNzXHJcbiAgICAgICAgICAgICAgPC9UZXh0PlxyXG4gICAgICAgICAgICAgIDxJbnB1dCBwbGFjZWhvbGRlcj1cIkVudGVyIGVtYWlsXCIgey4uLmlucHV0U3R5bGV9IC8+XHJcbiAgICAgICAgICAgIDwvQm94PlxyXG5cclxuICAgICAgICAgICAgPEJveD5cclxuICAgICAgICAgICAgICA8VGV4dCBmb250U2l6ZT1cInNtXCIgY29sb3I9XCJncmF5LjcwMFwiIG1iPXsyfT5cclxuICAgICAgICAgICAgICAgIFBhc3N3b3JkXHJcbiAgICAgICAgICAgICAgPC9UZXh0PlxyXG4gICAgICAgICAgICAgIDxCb3ggcG9zaXRpb249XCJyZWxhdGl2ZVwiPlxyXG4gICAgICAgICAgICAgICAgPElucHV0XHJcbiAgICAgICAgICAgICAgICAgIHR5cGU9e3Nob3dQYXNzd29yZCA/IFwidGV4dFwiIDogXCJwYXNzd29yZFwifVxyXG4gICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj1cIkVudGVyIGEgc3Ryb25nIHBhc3N3b3JkXCJcclxuICAgICAgICAgICAgICAgICAgcHI9XCI0NHB4XCJcclxuICAgICAgICAgICAgICAgICAgey4uLmlucHV0U3R5bGV9XHJcbiAgICAgICAgICAgICAgICAgIHZhbHVlPXtwYXNzd29yZH1cclxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9eyhlKSA9PiBzZXRQYXNzd29yZChlLnRhcmdldC52YWx1ZSl9XHJcbiAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgPEJ1dHRvblxyXG4gICAgICAgICAgICAgICAgICBhcmlhLWxhYmVsPXtzaG93UGFzc3dvcmQgPyBcIkhpZGUgcGFzc3dvcmRcIiA6IFwiU2hvdyBwYXNzd29yZFwifVxyXG4gICAgICAgICAgICAgICAgICB2YXJpYW50PVwiZ2hvc3RcIlxyXG4gICAgICAgICAgICAgICAgICBzaXplPVwic21cIlxyXG4gICAgICAgICAgICAgICAgICBwb3NpdGlvbj1cImFic29sdXRlXCJcclxuICAgICAgICAgICAgICAgICAgcmlnaHQ9XCI4cHhcIlxyXG4gICAgICAgICAgICAgICAgICB0b3A9XCI1MCVcIlxyXG4gICAgICAgICAgICAgICAgICB0cmFuc2Zvcm09XCJ0cmFuc2xhdGVZKC01MCUpXCJcclxuICAgICAgICAgICAgICAgICAgbWluVz1cImF1dG9cIlxyXG4gICAgICAgICAgICAgICAgICBweD17Mn1cclxuICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd1Bhc3N3b3JkKCh2KSA9PiAhdil9XHJcbiAgICAgICAgICAgICAgICA+XHJcbiAgICAgICAgICAgICAgICAgIDxJY29uXHJcbiAgICAgICAgICAgICAgICAgICAgYXM9e3Nob3dQYXNzd29yZCA/IEZpRXllT2ZmIDogRmlFeWV9XHJcbiAgICAgICAgICAgICAgICAgICAgYm94U2l6ZT17NX1cclxuICAgICAgICAgICAgICAgICAgICBjb2xvcj1cImdyYXkuNjAwXCJcclxuICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgICAgIDwvQm94PlxyXG4gICAgICAgICAgICAgIHtwYXNzd29yZC5sZW5ndGggPiAwICYmIChcclxuICAgICAgICAgICAgICAgIDxCb3ggbXQ9ezN9IGJvcmRlclJhZGl1cz1cIjhweFwiIGJnPVwiZ3JheS41MFwiIHA9ezN9PlxyXG4gICAgICAgICAgICAgICAgICA8VGV4dCBmb250U2l6ZT1cInhzXCIgY29sb3I9XCJncmF5LjcwMFwiIGZvbnRXZWlnaHQ9XCI2MDBcIiBtYj17Mn0+XHJcbiAgICAgICAgICAgICAgICAgICAgUGFzc3dvcmQgbXVzdCBpbmNsdWRlOlxyXG4gICAgICAgICAgICAgICAgICA8L1RleHQ+XHJcbiAgICAgICAgICAgICAgICAgIDxTdGFjayBnYXA9ezF9PlxyXG4gICAgICAgICAgICAgICAgICAgIDxSdWxlXHJcbiAgICAgICAgICAgICAgICAgICAgICBvaz17cGFzc3dvcmRSdWxlcy5oYXNNaW5MZW5ndGh9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0ZXh0PVwiQXQgbGVhc3QgOCBjaGFyYWN0ZXJzXCJcclxuICAgICAgICAgICAgICAgICAgICAvPlxyXG4gICAgICAgICAgICAgICAgICAgIDxSdWxlIG9rPXtwYXNzd29yZFJ1bGVzLmhhc0xldHRlcn0gdGV4dD1cIkEgbGV0dGVyIChBLVopXCIgLz5cclxuICAgICAgICAgICAgICAgICAgICA8UnVsZSBvaz17cGFzc3dvcmRSdWxlcy5oYXNOdW1iZXJ9IHRleHQ9XCJBIG51bWJlciAoMC05KVwiIC8+XHJcbiAgICAgICAgICAgICAgICAgICAgPFJ1bGVcclxuICAgICAgICAgICAgICAgICAgICAgIG9rPXtwYXNzd29yZFJ1bGVzLmhhc1NwZWNpYWx9XHJcbiAgICAgICAgICAgICAgICAgICAgICB0ZXh0PVwiQSBzcGVjaWFsIGNoYXJhY3RlciAoZS5nLiBALCAjLCAkKVwiXHJcbiAgICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgICAgPC9TdGFjaz5cclxuICAgICAgICAgICAgICAgIDwvQm94PlxyXG4gICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgIDwvQm94PlxyXG5cclxuICAgICAgICAgICAgPEJveD5cclxuICAgICAgICAgICAgICA8VGV4dCBmb250U2l6ZT1cInNtXCIgY29sb3I9XCJncmF5LjcwMFwiIG1iPXsyfT5cclxuICAgICAgICAgICAgICAgIENvbmZpcm0gcGFzc3dvcmRcclxuICAgICAgICAgICAgICA8L1RleHQ+XHJcbiAgICAgICAgICAgICAgPEJveCBwb3NpdGlvbj1cInJlbGF0aXZlXCI+XHJcbiAgICAgICAgICAgICAgICA8SW5wdXRcclxuICAgICAgICAgICAgICAgICAgdHlwZT17c2hvd0NvbmZpcm1QYXNzd29yZCA/IFwidGV4dFwiIDogXCJwYXNzd29yZFwifVxyXG4gICAgICAgICAgICAgICAgICBwbGFjZWhvbGRlcj1cIkVudGVyIHBhc3N3b3JkIGFnYWluXCJcclxuICAgICAgICAgICAgICAgICAgcHI9XCI0NHB4XCJcclxuICAgICAgICAgICAgICAgICAgey4uLmlucHV0U3R5bGV9XHJcbiAgICAgICAgICAgICAgICAgIHZhbHVlPXtjb25maXJtUGFzc3dvcmR9XHJcbiAgICAgICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0Q29uZmlybVBhc3N3b3JkKGUudGFyZ2V0LnZhbHVlKX1cclxuICAgICAgICAgICAgICAgIC8+XHJcbiAgICAgICAgICAgICAgICA8QnV0dG9uXHJcbiAgICAgICAgICAgICAgICAgIGFyaWEtbGFiZWw9e1xyXG4gICAgICAgICAgICAgICAgICAgIHNob3dDb25maXJtUGFzc3dvcmQgPyBcIkhpZGUgcGFzc3dvcmRcIiA6IFwiU2hvdyBwYXNzd29yZFwiXHJcbiAgICAgICAgICAgICAgICAgIH1cclxuICAgICAgICAgICAgICAgICAgdmFyaWFudD1cImdob3N0XCJcclxuICAgICAgICAgICAgICAgICAgc2l6ZT1cInNtXCJcclxuICAgICAgICAgICAgICAgICAgcG9zaXRpb249XCJhYnNvbHV0ZVwiXHJcbiAgICAgICAgICAgICAgICAgIHJpZ2h0PVwiOHB4XCJcclxuICAgICAgICAgICAgICAgICAgdG9wPVwiNTAlXCJcclxuICAgICAgICAgICAgICAgICAgdHJhbnNmb3JtPVwidHJhbnNsYXRlWSgtNTAlKVwiXHJcbiAgICAgICAgICAgICAgICAgIG1pblc9XCJhdXRvXCJcclxuICAgICAgICAgICAgICAgICAgcHg9ezJ9XHJcbiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFNob3dDb25maXJtUGFzc3dvcmQoKHYpID0+ICF2KX1cclxuICAgICAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICAgICAgPEljb25cclxuICAgICAgICAgICAgICAgICAgICBhcz17c2hvd0NvbmZpcm1QYXNzd29yZCA/IEZpRXllT2ZmIDogRmlFeWV9XHJcbiAgICAgICAgICAgICAgICAgICAgYm94U2l6ZT17NX1cclxuICAgICAgICAgICAgICAgICAgICBjb2xvcj1cImdyYXkuNjAwXCJcclxuICAgICAgICAgICAgICAgICAgLz5cclxuICAgICAgICAgICAgICAgIDwvQnV0dG9uPlxyXG4gICAgICAgICAgICAgIDwvQm94PlxyXG4gICAgICAgICAgICA8L0JveD5cclxuXHJcbiAgICAgICAgICAgIDxCdXR0b25cclxuICAgICAgICAgICAgICBtdD17Mn1cclxuICAgICAgICAgICAgICB3PVwiZnVsbFwiXHJcbiAgICAgICAgICAgICAgYmc9XCIjMTg3N0YyXCJcclxuICAgICAgICAgICAgICBjb2xvcj1cIndoaXRlXCJcclxuICAgICAgICAgICAgICBoPVwiNDRweFwiXHJcbiAgICAgICAgICAgICAgYm9yZGVyUmFkaXVzPVwiMTBweFwiXHJcbiAgICAgICAgICAgICAgX2hvdmVyPXt7IGJnOiBcIiMxNjZmZTVcIiB9fVxyXG4gICAgICAgICAgICAgIG9uQ2xpY2s9e29uUmVnaXN0ZXJ9XHJcbiAgICAgICAgICAgID5cclxuICAgICAgICAgICAgICBSZWdpc3RlclxyXG4gICAgICAgICAgICA8L0J1dHRvbj5cclxuXHJcbiAgICAgICAgICAgIDxIU3RhY2sganVzdGlmeT1cImNlbnRlclwiIGdhcD17Mn0gcHQ9ezF9PlxyXG4gICAgICAgICAgICAgIDxUZXh0IGZvbnRTaXplPVwic21cIiBjb2xvcj1cImdyYXkuNTAwXCI+XHJcbiAgICAgICAgICAgICAgICBIYXZlIGFuIGFjY291bnQgYWxyZWFkeT9cclxuICAgICAgICAgICAgICA8L1RleHQ+XHJcbiAgICAgICAgICAgICAgPEJ1dHRvblxyXG4gICAgICAgICAgICAgICAgdmFyaWFudD1cInBsYWluXCJcclxuICAgICAgICAgICAgICAgIGNvbG9yPVwiIzE4NzdGMlwiXHJcbiAgICAgICAgICAgICAgICBmb250U2l6ZT1cInNtXCJcclxuICAgICAgICAgICAgICAgIGZvbnRXZWlnaHQ9XCI1MDBcIlxyXG4gICAgICAgICAgICAgICAgcD17MH1cclxuICAgICAgICAgICAgICAgIGg9XCJhdXRvXCJcclxuICAgICAgICAgICAgICAgIG1pbkg9XCJhdXRvXCJcclxuICAgICAgICAgICAgICAgIF9ob3Zlcj17eyB0ZXh0RGVjb3JhdGlvbjogXCJ1bmRlcmxpbmVcIiB9fVxyXG4gICAgICAgICAgICAgICAgb25DbGljaz17b25Hb1RvTG9naW59XHJcbiAgICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgICAgTG9naW5cclxuICAgICAgICAgICAgICA8L0J1dHRvbj5cclxuICAgICAgICAgICAgPC9IU3RhY2s+XHJcbiAgICAgICAgICA8L1N0YWNrPlxyXG4gICAgICAgIDwvQm94PlxyXG4gICAgICA8L0NvbnRhaW5lcj5cclxuICAgIDwvQm94PlxyXG4gICk7XHJcbn1cclxuXHJcbmZ1bmN0aW9uIFJ1bGUoeyBvaywgdGV4dCB9OiB7IG9rOiBib29sZWFuOyB0ZXh0OiBzdHJpbmcgfSkge1xyXG4gIHJldHVybiAoXHJcbiAgICA8SFN0YWNrIGdhcD17Mn0gYWxpZ249XCJjZW50ZXJcIj5cclxuICAgICAgPEljb25cclxuICAgICAgICBhcz17RmFDaGVja0NpcmNsZX1cclxuICAgICAgICBib3hTaXplPXszLjV9XHJcbiAgICAgICAgY29sb3I9e29rID8gXCJncmVlbi41MDBcIiA6IFwiZ3JheS4zMDBcIn1cclxuICAgICAgLz5cclxuICAgICAgPFRleHQgZm9udFNpemU9XCJ4c1wiIGNvbG9yPXtvayA/IFwiZ3JlZW4uNzAwXCIgOiBcImdyYXkuNjAwXCJ9PlxyXG4gICAgICAgIHt0ZXh0fVxyXG4gICAgICA8L1RleHQ+XHJcbiAgICA8L0hTdGFjaz5cclxuICApO1xyXG59XHJcbiJdLCJmaWxlIjoiQzovVXNlcnMvcmF2aWsvY2xldmVyRm94LWFwcC9jbGllbnQvc3JjL2NvbXBvbmVudHMvdWkvU2lnbnVwUGFnZS50c3gifQ==

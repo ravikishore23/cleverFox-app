@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell, session } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "node:fs/promises";
@@ -6,9 +6,88 @@ import { spawn } from "node:child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const isDev = !app.isPackaged;
+
+// In dev, use OS-managed paths to avoid lock/permission issues in workspace files.
+if (isDev) {
+  const devUserData = path.join(app.getPath("appData"), "CleverFox-Dev");
+  const devSessionData = path.join(
+    app.getPath("temp"),
+    "CleverFox-Dev-Session",
+  );
+  app.setPath("userData", devUserData);
+  app.setPath("sessionData", devSessionData);
+  app.commandLine.appendSwitch(
+    "disk-cache-dir",
+    path.join(app.getPath("temp"), "CleverFox-Dev-Cache"),
+  );
+  app.commandLine.appendSwitch("disable-http-cache");
+}
+
+// Disable GPU shader disk cache to avoid platform-specific GPU cache issues
+// when running inside development environments.
+app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
 
 let mainWindow: BrowserWindow | null = null;
-const isDev = !app.isPackaged;
+
+function setupContentSecurityPolicy() {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const devConnect = isDev
+      ? " http://localhost:5173 ws://localhost:5173 http://127.0.0.1:5173 ws://127.0.0.1:5173 http://192.168.0.5:5173 ws://192.168.0.5:5173"
+      : "";
+    const scriptSrc = isDev
+      ? "script-src 'self' 'unsafe-inline'"
+      : "script-src 'self'";
+    const csp = [
+      "default-src 'self'",
+      `connect-src 'self' http://localhost:3001 ws://localhost:3001 http://127.0.0.1:3001 ws://127.0.0.1:3001 http://192.168.0.5:3001 ws://192.168.0.5:3001${devConnect}`,
+      "img-src 'self' data: blob: http: https:",
+      "media-src 'self' data: blob: http: https:",
+      "font-src 'self' data:",
+      "style-src 'self' 'unsafe-inline'",
+      scriptSrc,
+      "worker-src 'self' blob:",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "object-src 'none'",
+    ].join("; ");
+
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        "Content-Security-Policy": [csp],
+      },
+    });
+  });
+}
+
+function setupPermissions() {
+  session.defaultSession.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      if (permission === 'media') {
+        callback(true);
+      } else {
+        callback(false);
+      }
+    }
+  );
+
+  session.defaultSession.setPermissionCheckHandler(
+    (webContents, permission, requestingOrigin) => {
+      if (permission === 'camera' || permission === 'media') {
+        return true;
+      }
+      return false;
+    }
+  );
+
+  session.defaultSession.setDevicePermissionHandler((details) => {
+    if (details.deviceType === 'camera' || details.deviceType === 'audio') {
+      return true;
+    }
+    return false;
+  });
+}
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -49,6 +128,8 @@ function createMainWindow() {
 }
 
 app.whenReady().then(() => {
+  setupContentSecurityPolicy();
+  setupPermissions();
   createMainWindow();
 
   app.on("activate", () => {
@@ -65,6 +146,23 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.handle("app:ping", async () => "pong");
+
+ipcMain.handle("ai-request", async (_event, prompt: string) => {
+  try {
+    // Dynamic import to use the compiled backend agent controller or just execute here
+    // In a real scenario, this would call the actual AgentController compiled in the backend.
+    const { AgentController } =
+      await import("../backend/dist/agent/AgentController.js").catch(() => {
+        // Fallback for dev where it's not compiled
+        return import("../backend/src/agent/AgentController.ts" as any);
+      });
+    const agent = new AgentController();
+    const result = await agent.processPrompt(prompt);
+    return { ok: true, result };
+  } catch (err: any) {
+    return { ok: false, error: err.message };
+  }
+});
 
 ipcMain.handle("fs:pickDirectory", async () => {
   const result = await dialog.showOpenDialog({

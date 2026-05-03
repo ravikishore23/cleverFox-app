@@ -9,29 +9,44 @@ export class GeminiProvider implements LlmProvider {
 
   constructor(private readonly apiKey: string) {}
 
-  async chat(input: ProviderChatInput): Promise<ProviderChatOutput> {
-    const model = input.model ?? "gemini-2.0-flash";
-
-    // Gemini expects a "contents" array. System messages go via systemInstruction.
+  private buildPayload(input: ProviderChatInput): string {
     const systemParts = input.messages
       .filter((m) => m.role === "system")
       .map((m) => ({ text: m.content }));
 
     const contents = input.messages
       .filter((m) => m.role !== "system")
-      .map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
+      .map((m) => {
+        const parts: any[] = [];
+        if (m.content) {
+          parts.push({ text: m.content });
+        }
+        if (m.attachments && m.attachments.length > 0) {
+          for (const att of m.attachments) {
+            // Check if it's base64 or a data URI
+            const b64 = att.data.includes(",") ? att.data.split(",")[1] : att.data;
+            parts.push({
+              inlineData: { mimeType: att.type, data: b64 }
+            });
+          }
+        }
+        return {
+          role: m.role === "assistant" ? "model" : "user",
+          parts,
+        };
+      });
 
     const body: Record<string, unknown> = { contents };
     if (systemParts.length > 0) {
       body.systemInstruction = { parts: systemParts };
     }
+    return JSON.stringify(body);
+  }
 
+  async chat(input: ProviderChatInput): Promise<ProviderChatOutput> {
+    const model = input.model ?? "gemini-2.0-flash";
+    const payload = this.buildPayload(input);
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
-    const payload = JSON.stringify(body);
-
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < GeminiProvider.MAX_RETRIES; attempt++) {
@@ -41,15 +56,8 @@ export class GeminiProvider implements LlmProvider {
         body: payload,
       });
 
-      // Retry on 429 (rate limit) or 503 (overloaded)
       if (res.status === 429 || res.status === 503) {
-        const retryAfter = res.headers.get("retry-after");
-        const waitMs = retryAfter
-          ? Number(retryAfter) * 1000
-          : Math.min(2000 * 2 ** attempt, 15000); // exponential backoff, max 15s
-        console.warn(
-          `Gemini ${res.status} – retrying in ${waitMs}ms (attempt ${attempt + 1}/${GeminiProvider.MAX_RETRIES})`,
-        );
+        const waitMs = Math.min(2000 * 2 ** attempt, 15000);
         await new Promise((r) => setTimeout(r, waitMs));
         lastError = new Error(`Gemini rate limited (${res.status})`);
         continue;
@@ -57,22 +65,73 @@ export class GeminiProvider implements LlmProvider {
 
       if (!res.ok) {
         const text = await res.text().catch(() => "");
-        throw new Error(
-          `Gemini error ${res.status}: ${text || res.statusText}`,
-        );
+        throw new Error(`Gemini error ${res.status}: ${text || res.statusText}`);
       }
 
       const data = (await res.json()) as any;
-      const outputText: string =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "(empty response)";
+      const outputText: string = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "(empty response)";
+      return { outputText, provider: "gemini", model };
+    }
+    throw lastError ?? new Error("Gemini: max retries exceeded");
+  }
 
-      return {
-        outputText,
-        provider: "gemini",
-        model,
-      };
+  async streamChat(
+    input: ProviderChatInput,
+    onChunk: (text: string) => void
+  ): Promise<ProviderChatOutput> {
+    const model = input.model ?? "gemini-2.0-flash";
+    const payload = this.buildPayload(input);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Gemini streaming error ${res.status}: ${text || res.statusText}`);
     }
 
-    throw lastError ?? new Error("Gemini: max retries exceeded");
+    if (!res.body) {
+      throw new Error("No response body in stream");
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let fullText = "";
+
+    let buffer = "";
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (trimmedLine.startsWith("data: ") && trimmedLine !== "data: [DONE]") {
+            const dataStr = trimmedLine.slice(6).trim();
+            if (dataStr === "null" || !dataStr) continue;
+            try {
+              const data = JSON.parse(dataStr);
+              const textChunk = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textChunk) {
+                fullText += textChunk;
+                onChunk(textChunk);
+              }
+            } catch (e) {
+              // ignore parse errors for partial chunks; in actual implementation SSE might span across chunks
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    return { outputText: fullText, provider: "gemini", model };
   }
 }

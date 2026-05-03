@@ -1,0 +1,747 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/ui/studyroom/tools/WelcomeScreen.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=1524dab0"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import __vite__cjsImport1_react from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react.js?v=1524dab0"; const React = __vite__cjsImport1_react.__esModule ? __vite__cjsImport1_react.default : __vite__cjsImport1_react;
+import {
+  Box,
+  Flex,
+  Text,
+  VStack,
+  HStack,
+  Icon
+} from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/@chakra-ui_react.js?v=1524dab0";
+import { motion, AnimatePresence } from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/framer-motion.js?v=1524dab0";
+import {
+  FiSend,
+  FiBook,
+  FiCheckSquare,
+  FiCode,
+  FiMusic,
+  FiPaperclip,
+  FiImage,
+  FiFile,
+  FiX,
+  FiSquare,
+  FiSearch,
+  FiTerminal
+} from "/@fs/C:/Users/ravik/cleverFox-app/node_modules/.vite/deps/react-icons_fi.js?v=1524dab0";
+const AI_LOGO = "/ai-logo.png";
+const MotionBox = motion.create(Box);
+_c = MotionBox;
+const MotionFlex = motion.create(Flex);
+_c2 = MotionFlex;
+const formatFileSize = (dataUrl) => {
+  const base64 = dataUrl.split(",")[1] || "";
+  const bytes = Math.round(base64.length * 3 / 4);
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+const SUGGESTIONS = [
+  { icon: FiBook, text: "Explain quantum physics", color: "rgba(168, 85, 247, 0.15)", borderColor: "rgba(168, 85, 247, 0.2)", iconColor: "purple.300" },
+  { icon: FiCheckSquare, text: "Help me study for exams", color: "rgba(59, 130, 246, 0.15)", borderColor: "rgba(59, 130, 246, 0.2)", iconColor: "blue.300" },
+  { icon: FiCode, text: "Write a React component", color: "rgba(34, 197, 94, 0.15)", borderColor: "rgba(34, 197, 94, 0.2)", iconColor: "green.300" },
+  { icon: FiMusic, text: "Suggest focus music", color: "rgba(249, 115, 22, 0.15)", borderColor: "rgba(249, 115, 22, 0.2)", iconColor: "orange.300" }
+];
+const WelcomeScreen = ({
+  input,
+  setInput,
+  handleSend,
+  attachments,
+  setAttachments,
+  fileInputRef,
+  imageInputRef,
+  handleFileUpload,
+  isTyping,
+  handleStop,
+  webSearchEnabled = false,
+  setWebSearchEnabled = () => {
+  },
+  agentMode = false,
+  setAgentMode = () => {
+  }
+}) => {
+  return /* @__PURE__ */ jsxDEV(
+    Flex,
+    {
+      direction: "column",
+      align: "center",
+      justify: "center",
+      flex: "1",
+      h: "100%",
+      color: "white",
+      px: 4,
+      pb: 20,
+      children: /* @__PURE__ */ jsxDEV(VStack, { gap: 8, maxW: "640px", w: "full", children: [
+        /* @__PURE__ */ jsxDEV(
+          MotionBox,
+          {
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.5 },
+            children: /* @__PURE__ */ jsxDEV(VStack, { gap: 4, children: [
+              /* @__PURE__ */ jsxDEV(
+                Box,
+                {
+                  p: 3,
+                  bg: "whiteAlpha.50",
+                  borderRadius: "2xl",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
+                  border: "1px solid",
+                  borderColor: "whiteAlpha.100",
+                  children: /* @__PURE__ */ jsxDEV(
+                    "img",
+                    {
+                      src: AI_LOGO,
+                      alt: "Fox AI",
+                      style: {
+                        width: "56px",
+                        height: "56px",
+                        borderRadius: "12px",
+                        objectFit: "cover"
+                      }
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                      lineNumber: 105,
+                      columnNumber: 15
+                    },
+                    this
+                  )
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                  lineNumber: 97,
+                  columnNumber: 13
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(VStack, { gap: 1, children: [
+                /* @__PURE__ */ jsxDEV(Text, { fontSize: "2xl", fontWeight: "700", color: "white", letterSpacing: "-0.01em", children: "Hi, I'm Fox AI" }, void 0, false, {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                  lineNumber: 117,
+                  columnNumber: 15
+                }, this),
+                /* @__PURE__ */ jsxDEV(Text, { fontSize: "md", color: "whiteAlpha.500", textAlign: "center", children: "I can help you study, code, or just chat." }, void 0, false, {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                  lineNumber: 120,
+                  columnNumber: 15
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                lineNumber: 116,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+              lineNumber: 96,
+              columnNumber: 11
+            }, this)
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+            lineNumber: 91,
+            columnNumber: 9
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          MotionBox,
+          {
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.5, delay: 0.1 },
+            w: "full",
+            children: /* @__PURE__ */ jsxDEV(
+              Box,
+              {
+                w: "full",
+                bg: "rgba(39, 39, 42, 0.85)",
+                backdropFilter: "blur(20px)",
+                borderRadius: "2xl",
+                p: 3,
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+                transition: "all 0.25s ease",
+                _focusWithin: {
+                  borderColor: "rgba(168, 85, 247, 0.5)",
+                  boxShadow: "0 8px 40px rgba(168, 85, 247, 0.12), inset 0 1px 0 rgba(255,255,255,0.05)"
+                },
+                children: [
+                  /* @__PURE__ */ jsxDEV(AnimatePresence, { children: attachments && attachments.length > 0 && /* @__PURE__ */ jsxDEV(
+                    MotionFlex,
+                    {
+                      initial: { height: 0, opacity: 0 },
+                      animate: { height: "auto", opacity: 1 },
+                      exit: { height: 0, opacity: 0 },
+                      gap: 2,
+                      wrap: "wrap",
+                      mb: 2,
+                      overflow: "hidden",
+                      children: attachments.map(
+                        (att, idx) => /* @__PURE__ */ jsxDEV(
+                          MotionBox,
+                          {
+                            initial: { scale: 0.8, opacity: 0 },
+                            animate: { scale: 1, opacity: 1 },
+                            exit: { scale: 0.8, opacity: 0 },
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                            px: 3,
+                            py: 2,
+                            bg: "whiteAlpha.100",
+                            borderRadius: "xl",
+                            border: "1px solid",
+                            borderColor: "whiteAlpha.100",
+                            children: [
+                              att.type.startsWith("image/") ? /* @__PURE__ */ jsxDEV(Box, { w: "32px", h: "32px", borderRadius: "md", overflow: "hidden", flexShrink: 0, children: /* @__PURE__ */ jsxDEV("img", { src: att.data, alt: "preview", style: { width: "100%", height: "100%", objectFit: "cover" } }, void 0, false, {
+                                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                lineNumber: 179,
+                                columnNumber: 27
+                              }, this) }, void 0, false, {
+                                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                lineNumber: 178,
+                                columnNumber: 19
+                              }, this) : /* @__PURE__ */ jsxDEV(Flex, { w: "32px", h: "32px", bg: "purple.500/20", borderRadius: "md", align: "center", justify: "center", flexShrink: 0, children: /* @__PURE__ */ jsxDEV(Icon, { as: FiFile, color: "purple.300", boxSize: 4 }, void 0, false, {
+                                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                lineNumber: 183,
+                                columnNumber: 27
+                              }, this) }, void 0, false, {
+                                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                lineNumber: 182,
+                                columnNumber: 19
+                              }, this),
+                              /* @__PURE__ */ jsxDEV(Box, { minW: 0, children: [
+                                /* @__PURE__ */ jsxDEV(Text, { fontSize: "xs", color: "whiteAlpha.900", fontWeight: "500", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxW: "120px", children: att.name }, void 0, false, {
+                                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                  lineNumber: 187,
+                                  columnNumber: 25
+                                }, this),
+                                /* @__PURE__ */ jsxDEV(Text, { fontSize: "10px", color: "whiteAlpha.400", children: formatFileSize(att.data) }, void 0, false, {
+                                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                  lineNumber: 190,
+                                  columnNumber: 25
+                                }, this)
+                              ] }, void 0, true, {
+                                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                lineNumber: 186,
+                                columnNumber: 23
+                              }, this),
+                              /* @__PURE__ */ jsxDEV(
+                                Box,
+                                {
+                                  as: "button",
+                                  onClick: () => setAttachments((prev) => prev.filter((_, i) => i !== idx)),
+                                  p: 1,
+                                  borderRadius: "full",
+                                  _hover: { bg: "whiteAlpha.200" },
+                                  transition: "all 0.15s",
+                                  cursor: "pointer",
+                                  flexShrink: 0,
+                                  children: /* @__PURE__ */ jsxDEV(Icon, { as: FiX, color: "whiteAlpha.500", boxSize: 3 }, void 0, false, {
+                                    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                    lineNumber: 204,
+                                    columnNumber: 25
+                                  }, this)
+                                },
+                                void 0,
+                                false,
+                                {
+                                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                                  lineNumber: 194,
+                                  columnNumber: 23
+                                },
+                                this
+                              )
+                            ]
+                          },
+                          idx,
+                          true,
+                          {
+                            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                            lineNumber: 162,
+                            columnNumber: 17
+                          },
+                          this
+                        )
+                      )
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                      lineNumber: 152,
+                      columnNumber: 15
+                    },
+                    this
+                  ) }, void 0, false, {
+                    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                    lineNumber: 150,
+                    columnNumber: 13
+                  }, this),
+                  /* @__PURE__ */ jsxDEV(
+                    "textarea",
+                    {
+                      value: input,
+                      onChange: (e) => setInput(e.target.value),
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSend();
+                        }
+                      },
+                      placeholder: "Ask anything...",
+                      rows: 1,
+                      disabled: isTyping,
+                      style: {
+                        width: "100%",
+                        background: "transparent",
+                        border: "none",
+                        outline: "none",
+                        color: "white",
+                        resize: "none",
+                        minHeight: "40px",
+                        maxHeight: "200px",
+                        fontSize: "15px",
+                        fontFamily: "'Inter', -apple-system, sans-serif",
+                        lineHeight: "1.6",
+                        padding: 0,
+                        marginBottom: "8px",
+                        overflow: "auto"
+                      }
+                    },
+                    void 0,
+                    false,
+                    {
+                      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                      lineNumber: 212,
+                      columnNumber: 13
+                    },
+                    this
+                  ),
+                  /* @__PURE__ */ jsxDEV(Flex, { justify: "space-between", align: "center", children: [
+                    /* @__PURE__ */ jsxDEV(HStack, { gap: 0.5, children: [
+                      /* @__PURE__ */ jsxDEV(
+                        "input",
+                        {
+                          type: "file",
+                          ref: fileInputRef,
+                          onChange: handleFileUpload,
+                          accept: ".pdf,.doc,.docx,.txt,.csv,.json,.md",
+                          multiple: true,
+                          style: { display: "none" }
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 243,
+                          columnNumber: 17
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV(
+                        "input",
+                        {
+                          type: "file",
+                          ref: imageInputRef,
+                          onChange: handleFileUpload,
+                          accept: "image/*",
+                          multiple: true,
+                          style: { display: "none" }
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 251,
+                          columnNumber: 17
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV(
+                        Box,
+                        {
+                          as: "button",
+                          onClick: () => fileInputRef.current?.click(),
+                          display: "flex",
+                          alignItems: "center",
+                          px: 2.5,
+                          py: 1.5,
+                          borderRadius: "lg",
+                          _hover: { bg: "whiteAlpha.100" },
+                          transition: "all 0.15s",
+                          cursor: "pointer",
+                          children: /* @__PURE__ */ jsxDEV(Icon, { as: FiPaperclip, color: "whiteAlpha.400", boxSize: 4 }, void 0, false, {
+                            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                            lineNumber: 271,
+                            columnNumber: 19
+                          }, this)
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 259,
+                          columnNumber: 17
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV(
+                        Box,
+                        {
+                          as: "button",
+                          onClick: () => imageInputRef.current?.click(),
+                          display: "flex",
+                          alignItems: "center",
+                          px: 2.5,
+                          py: 1.5,
+                          borderRadius: "lg",
+                          _hover: { bg: "whiteAlpha.100" },
+                          transition: "all 0.15s",
+                          cursor: "pointer",
+                          children: /* @__PURE__ */ jsxDEV(Icon, { as: FiImage, color: "whiteAlpha.400", boxSize: 4 }, void 0, false, {
+                            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                            lineNumber: 285,
+                            columnNumber: 19
+                          }, this)
+                        },
+                        void 0,
+                        false,
+                        {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 273,
+                          columnNumber: 17
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV(
+                        Box,
+                        {
+                          as: "button",
+                          onClick: () => setWebSearchEnabled(!webSearchEnabled),
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          px: 2.5,
+                          py: 1,
+                          borderRadius: "md",
+                          bg: webSearchEnabled ? "rgba(59, 130, 246, 0.15)" : "transparent",
+                          color: webSearchEnabled ? "blue.300" : "gray.500",
+                          _hover: { bg: webSearchEnabled ? "rgba(59, 130, 246, 0.25)" : "whiteAlpha.100", color: webSearchEnabled ? "blue.200" : "gray.400" },
+                          transition: "all 0.2s",
+                          fontSize: "xs",
+                          fontWeight: "500",
+                          children: [
+                            /* @__PURE__ */ jsxDEV(Icon, { as: FiSearch, boxSize: 3.5 }, void 0, false, {
+                              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                              lineNumber: 303,
+                              columnNumber: 19
+                            }, this),
+                            /* @__PURE__ */ jsxDEV(Text, { children: webSearchEnabled ? "Web Search On" : "Search" }, void 0, false, {
+                              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                              lineNumber: 304,
+                              columnNumber: 19
+                            }, this)
+                          ]
+                        },
+                        void 0,
+                        true,
+                        {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 287,
+                          columnNumber: 17
+                        },
+                        this
+                      ),
+                      /* @__PURE__ */ jsxDEV(
+                        Box,
+                        {
+                          as: "button",
+                          onClick: () => setAgentMode(!agentMode),
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          px: 2.5,
+                          py: 1,
+                          borderRadius: "md",
+                          bg: agentMode ? "linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(99, 102, 241, 0.15))" : "transparent",
+                          color: agentMode ? "purple.300" : "gray.500",
+                          _hover: { bg: agentMode ? "rgba(168, 85, 247, 0.25)" : "whiteAlpha.100", color: agentMode ? "purple.200" : "gray.400" },
+                          transition: "all 0.2s",
+                          fontSize: "xs",
+                          fontWeight: "500",
+                          children: [
+                            /* @__PURE__ */ jsxDEV(Icon, { as: FiTerminal, boxSize: 3.5 }, void 0, false, {
+                              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                              lineNumber: 322,
+                              columnNumber: 19
+                            }, this),
+                            /* @__PURE__ */ jsxDEV(Text, { children: agentMode ? "Agent Mode On" : "Agent Mode" }, void 0, false, {
+                              fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                              lineNumber: 323,
+                              columnNumber: 19
+                            }, this)
+                          ]
+                        },
+                        void 0,
+                        true,
+                        {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 306,
+                          columnNumber: 17
+                        },
+                        this
+                      )
+                    ] }, void 0, true, {
+                      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                      lineNumber: 242,
+                      columnNumber: 15
+                    }, this),
+                    isTyping ? /* @__PURE__ */ jsxDEV(
+                      Box,
+                      {
+                        as: "button",
+                        onClick: handleStop,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        px: 3,
+                        py: 1.5,
+                        bg: "rgba(239, 68, 68, 0.15)",
+                        border: "1px solid",
+                        borderColor: "rgba(239, 68, 68, 0.3)",
+                        borderRadius: "xl",
+                        _hover: { bg: "rgba(239, 68, 68, 0.25)" },
+                        transition: "all 0.15s",
+                        cursor: "pointer",
+                        css: {
+                          animation: "pulse 2s infinite",
+                          "@keyframes pulse": {
+                            "0%, 100%": { opacity: 1 },
+                            "50%": { opacity: 0.7 }
+                          }
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxDEV(Icon, { as: FiSquare, color: "red.400", boxSize: 3 }, void 0, false, {
+                            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                            lineNumber: 351,
+                            columnNumber: 19
+                          }, this),
+                          /* @__PURE__ */ jsxDEV(Text, { fontSize: "xs", color: "red.400", fontWeight: "600", children: "Stop" }, void 0, false, {
+                            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                            lineNumber: 352,
+                            columnNumber: 19
+                          }, this)
+                        ]
+                      },
+                      void 0,
+                      true,
+                      {
+                        fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                        lineNumber: 328,
+                        columnNumber: 15
+                      },
+                      this
+                    ) : /* @__PURE__ */ jsxDEV(
+                      Box,
+                      {
+                        as: "button",
+                        onClick: () => handleSend(),
+                        p: 2,
+                        bg: input.trim() || attachments && attachments.length > 0 ? "white" : "whiteAlpha.100",
+                        color: input.trim() || attachments && attachments.length > 0 ? "black" : "whiteAlpha.400",
+                        borderRadius: "xl",
+                        transition: "all 0.2s",
+                        _hover: input.trim() || attachments && attachments.length > 0 ? { opacity: 0.9, transform: "scale(1.05)" } : {},
+                        cursor: input.trim() || attachments && attachments.length > 0 ? "pointer" : "default",
+                        children: /* @__PURE__ */ jsxDEV(Icon, { as: FiSend, boxSize: 4 }, void 0, false, {
+                          fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                          lineNumber: 366,
+                          columnNumber: 19
+                        }, this)
+                      },
+                      void 0,
+                      false,
+                      {
+                        fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                        lineNumber: 355,
+                        columnNumber: 15
+                      },
+                      this
+                    )
+                  ] }, void 0, true, {
+                    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                    lineNumber: 241,
+                    columnNumber: 13
+                  }, this)
+                ]
+              },
+              void 0,
+              true,
+              {
+                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                lineNumber: 134,
+                columnNumber: 11
+              },
+              this
+            )
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+            lineNumber: 128,
+            columnNumber: 9
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          MotionBox,
+          {
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { duration: 0.5, delay: 0.2 },
+            w: "full",
+            children: [
+              /* @__PURE__ */ jsxDEV(
+                Text,
+                {
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  color: "whiteAlpha.300",
+                  mb: 4,
+                  textAlign: "center",
+                  textTransform: "uppercase",
+                  letterSpacing: "wider",
+                  children: "Try asking"
+                },
+                void 0,
+                false,
+                {
+                  fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                  lineNumber: 380,
+                  columnNumber: 11
+                },
+                this
+              ),
+              /* @__PURE__ */ jsxDEV(Flex, { gap: 3, wrap: "wrap", justify: "center", children: SUGGESTIONS.map(
+                (item, i) => /* @__PURE__ */ jsxDEV(
+                  MotionBox,
+                  {
+                    as: "button",
+                    whileHover: { y: -3, scale: 1.02 },
+                    whileTap: { scale: 0.98 },
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                    py: 4,
+                    px: 5,
+                    bg: item.color,
+                    border: "1px solid",
+                    borderColor: item.borderColor,
+                    borderRadius: "2xl",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                    _hover: {
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.2)"
+                    },
+                    onClick: () => {
+                      setInput(item.text);
+                      setTimeout(() => handleSend(item.text), 150);
+                    },
+                    minW: "140px",
+                    flex: "1",
+                    maxW: "180px",
+                    children: [
+                      /* @__PURE__ */ jsxDEV(Icon, { as: item.icon, boxSize: 5, color: item.iconColor }, void 0, false, {
+                        fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                        lineNumber: 421,
+                        columnNumber: 17
+                      }, this),
+                      /* @__PURE__ */ jsxDEV(Text, { fontSize: "13px", fontWeight: "500", color: "whiteAlpha.900", textAlign: "center", children: item.text }, void 0, false, {
+                        fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                        lineNumber: 422,
+                        columnNumber: 17
+                      }, this)
+                    ]
+                  },
+                  i,
+                  true,
+                  {
+                    fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                    lineNumber: 393,
+                    columnNumber: 13
+                  },
+                  this
+                )
+              ) }, void 0, false, {
+                fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+                lineNumber: 391,
+                columnNumber: 11
+              }, this)
+            ]
+          },
+          void 0,
+          true,
+          {
+            fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+            lineNumber: 374,
+            columnNumber: 9
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+        lineNumber: 89,
+        columnNumber: 7
+      }, this)
+    },
+    void 0,
+    false,
+    {
+      fileName: "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx",
+      lineNumber: 79,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_c3 = WelcomeScreen;
+export default WelcomeScreen;
+var _c, _c2, _c3;
+$RefreshReg$(_c, "MotionBox");
+$RefreshReg$(_c2, "MotionFlex");
+$RefreshReg$(_c3, "WelcomeScreen");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "C:/Users/ravik/cleverFox-app/client/src/components/ui/studyroom/tools/WelcomeScreen.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBd0djO0FBeEdkLE9BQU9BLFdBQVc7QUFDbEI7QUFBQSxFQUNFQztBQUFBQSxFQUNBQztBQUFBQSxFQUNBQztBQUFBQSxFQUNBQztBQUFBQSxFQUNBQztBQUFBQSxFQUNBQztBQUFBQSxPQUNLO0FBQ1AsU0FBU0MsUUFBUUMsdUJBQXVCO0FBQ3hDO0FBQUEsRUFDRUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsT0FDSztBQUVQLE1BQU1DLFVBQVU7QUFDaEIsTUFBTUMsWUFBWWYsT0FBT2dCLE9BQU90QixHQUFVO0FBQUV1QixLQUF0Q0Y7QUFDTixNQUFNRyxhQUFhbEIsT0FBT2dCLE9BQU9yQixJQUFXO0FBQUV3QixNQUF4Q0Q7QUFtQk4sTUFBTUUsaUJBQWlCQSxDQUFDQyxZQUFvQjtBQUMxQyxRQUFNQyxTQUFTRCxRQUFRRSxNQUFNLEdBQUcsRUFBRSxDQUFDLEtBQUs7QUFDeEMsUUFBTUMsUUFBUUMsS0FBS0MsTUFBT0osT0FBT0ssU0FBUyxJQUFLLENBQUM7QUFDaEQsTUFBSUgsUUFBUSxLQUFNLFFBQU8sR0FBR0EsS0FBSztBQUNqQyxNQUFJQSxRQUFRLE9BQU8sS0FBTSxRQUFPLElBQUlBLFFBQVEsTUFBTUksUUFBUSxDQUFDLENBQUM7QUFDNUQsU0FBTyxJQUFJSixTQUFTLE9BQU8sT0FBT0ksUUFBUSxDQUFDLENBQUM7QUFDOUM7QUFFQSxNQUFNQyxjQUFjO0FBQUEsRUFDbEIsRUFBRUMsTUFBTTNCLFFBQVE0QixNQUFNLDJCQUEyQkMsT0FBTyw0QkFBNEJDLGFBQWEsMkJBQTJCQyxXQUFXLGFBQWE7QUFBQSxFQUNwSixFQUFFSixNQUFNMUIsZUFBZTJCLE1BQU0sMkJBQTJCQyxPQUFPLDRCQUE0QkMsYUFBYSwyQkFBMkJDLFdBQVcsV0FBVztBQUFBLEVBQ3pKLEVBQUVKLE1BQU16QixRQUFRMEIsTUFBTSwyQkFBMkJDLE9BQU8sMkJBQTJCQyxhQUFhLDBCQUEwQkMsV0FBVyxZQUFZO0FBQUEsRUFDakosRUFBRUosTUFBTXhCLFNBQVN5QixNQUFNLHVCQUF1QkMsT0FBTyw0QkFBNEJDLGFBQWEsMkJBQTJCQyxXQUFXLGFBQWE7QUFBQztBQUdwSixNQUFNQyxnQkFBZ0JBLENBQUM7QUFBQSxFQUNyQkM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUM7QUFBQUEsRUFDQUMsbUJBQW1CO0FBQUEsRUFDbkJDLHNCQUFzQkEsTUFBTTtBQUFBLEVBQUM7QUFBQSxFQUM3QkMsWUFBWTtBQUFBLEVBQ1pDLGVBQWVBLE1BQU07QUFBQSxFQUFDO0FBQ0osTUFBTTtBQUN4QixTQUNFO0FBQUEsSUFBQztBQUFBO0FBQUEsTUFDQyxXQUFVO0FBQUEsTUFDVixPQUFNO0FBQUEsTUFDTixTQUFRO0FBQUEsTUFDUixNQUFLO0FBQUEsTUFDTCxHQUFFO0FBQUEsTUFDRixPQUFNO0FBQUEsTUFDTixJQUFJO0FBQUEsTUFDSixJQUFJO0FBQUEsTUFFSixpQ0FBQyxVQUFPLEtBQUssR0FBRyxNQUFLLFNBQVEsR0FBRSxRQUU3QjtBQUFBO0FBQUEsVUFBQztBQUFBO0FBQUEsWUFDQyxTQUFTLEVBQUVDLFNBQVMsR0FBR0MsR0FBRyxHQUFHO0FBQUEsWUFDN0IsU0FBUyxFQUFFRCxTQUFTLEdBQUdDLEdBQUcsRUFBRTtBQUFBLFlBQzVCLFlBQVksRUFBRUMsVUFBVSxJQUFJO0FBQUEsWUFFNUIsaUNBQUMsVUFBTyxLQUFLLEdBQ1g7QUFBQTtBQUFBLGdCQUFDO0FBQUE7QUFBQSxrQkFDQyxHQUFHO0FBQUEsa0JBQ0gsSUFBRztBQUFBLGtCQUNILGNBQWE7QUFBQSxrQkFDYixXQUFVO0FBQUEsa0JBQ1YsUUFBTztBQUFBLGtCQUNQLGFBQVk7QUFBQSxrQkFFWjtBQUFBLG9CQUFDO0FBQUE7QUFBQSxzQkFDQyxLQUFLdEM7QUFBQUEsc0JBQ0wsS0FBSTtBQUFBLHNCQUNKLE9BQU87QUFBQSx3QkFDTHVDLE9BQU87QUFBQSx3QkFDUEMsUUFBUTtBQUFBLHdCQUNSQyxjQUFjO0FBQUEsd0JBQ2RDLFdBQVc7QUFBQSxzQkFDYjtBQUFBO0FBQUEsb0JBUkY7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLGtCQVFJO0FBQUE7QUFBQSxnQkFoQk47QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLGNBa0JBO0FBQUEsY0FDQSx1QkFBQyxVQUFPLEtBQUssR0FDWDtBQUFBLHVDQUFDLFFBQUssVUFBUyxPQUFNLFlBQVcsT0FBTSxPQUFNLFNBQVEsZUFBYyxXQUFTLDhCQUEzRTtBQUFBO0FBQUE7QUFBQTtBQUFBLHVCQUVBO0FBQUEsZ0JBQ0EsdUJBQUMsUUFBSyxVQUFTLE1BQUssT0FBTSxrQkFBaUIsV0FBVSxVQUFRLHlEQUE3RDtBQUFBO0FBQUE7QUFBQTtBQUFBLHVCQUVBO0FBQUEsbUJBTkY7QUFBQTtBQUFBO0FBQUE7QUFBQSxxQkFPQTtBQUFBLGlCQTNCRjtBQUFBO0FBQUE7QUFBQTtBQUFBLG1CQTRCQTtBQUFBO0FBQUEsVUFqQ0Y7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLFFBa0NBO0FBQUEsUUFHQTtBQUFBLFVBQUM7QUFBQTtBQUFBLFlBQ0MsU0FBUyxFQUFFTixTQUFTLEdBQUdDLEdBQUcsR0FBRztBQUFBLFlBQzdCLFNBQVMsRUFBRUQsU0FBUyxHQUFHQyxHQUFHLEVBQUU7QUFBQSxZQUM1QixZQUFZLEVBQUVDLFVBQVUsS0FBS0ssT0FBTyxJQUFJO0FBQUEsWUFDeEMsR0FBRTtBQUFBLFlBRUY7QUFBQSxjQUFDO0FBQUE7QUFBQSxnQkFDQyxHQUFFO0FBQUEsZ0JBQ0YsSUFBRztBQUFBLGdCQUNILGdCQUFlO0FBQUEsZ0JBQ2YsY0FBYTtBQUFBLGdCQUNiLEdBQUc7QUFBQSxnQkFDSCxRQUFPO0FBQUEsZ0JBQ1AsYUFBWTtBQUFBLGdCQUNaLFdBQVU7QUFBQSxnQkFDVixZQUFXO0FBQUEsZ0JBQ1gsY0FBYztBQUFBLGtCQUNaeEIsYUFBYTtBQUFBLGtCQUNieUIsV0FBVztBQUFBLGdCQUNiO0FBQUEsZ0JBR0E7QUFBQSx5Q0FBQyxtQkFDRW5CLHlCQUFlQSxZQUFZWixTQUFTLEtBQ25DO0FBQUEsb0JBQUM7QUFBQTtBQUFBLHNCQUNDLFNBQVMsRUFBRTJCLFFBQVEsR0FBR0osU0FBUyxFQUFFO0FBQUEsc0JBQ2pDLFNBQVMsRUFBRUksUUFBUSxRQUFRSixTQUFTLEVBQUU7QUFBQSxzQkFDdEMsTUFBTSxFQUFFSSxRQUFRLEdBQUdKLFNBQVMsRUFBRTtBQUFBLHNCQUM5QixLQUFLO0FBQUEsc0JBQ0wsTUFBSztBQUFBLHNCQUNMLElBQUk7QUFBQSxzQkFDSixVQUFTO0FBQUEsc0JBRVJYLHNCQUFZb0I7QUFBQUEsd0JBQUksQ0FBQ0MsS0FBS0MsUUFDckI7QUFBQSwwQkFBQztBQUFBO0FBQUEsNEJBRUMsU0FBUyxFQUFFQyxPQUFPLEtBQUtaLFNBQVMsRUFBRTtBQUFBLDRCQUNsQyxTQUFTLEVBQUVZLE9BQU8sR0FBR1osU0FBUyxFQUFFO0FBQUEsNEJBQ2hDLE1BQU0sRUFBRVksT0FBTyxLQUFLWixTQUFTLEVBQUU7QUFBQSw0QkFDL0IsU0FBUTtBQUFBLDRCQUNSLFlBQVc7QUFBQSw0QkFDWCxLQUFLO0FBQUEsNEJBQ0wsSUFBSTtBQUFBLDRCQUNKLElBQUk7QUFBQSw0QkFDSixJQUFHO0FBQUEsNEJBQ0gsY0FBYTtBQUFBLDRCQUNiLFFBQU87QUFBQSw0QkFDUCxhQUFZO0FBQUEsNEJBRVhVO0FBQUFBLGtDQUFJRyxLQUFLQyxXQUFXLFFBQVEsSUFDM0IsdUJBQUMsT0FBSSxHQUFFLFFBQU8sR0FBRSxRQUFPLGNBQWEsTUFBSyxVQUFTLFVBQVMsWUFBWSxHQUNyRSxpQ0FBQyxTQUFJLEtBQUtKLElBQUlLLE1BQU0sS0FBSSxXQUFVLE9BQU8sRUFBRVosT0FBTyxRQUFRQyxRQUFRLFFBQVFFLFdBQVcsUUFBUSxLQUE3RjtBQUFBO0FBQUE7QUFBQTtBQUFBLHFDQUErRixLQURqRztBQUFBO0FBQUE7QUFBQTtBQUFBLHFDQUVBLElBRUEsdUJBQUMsUUFBSyxHQUFFLFFBQU8sR0FBRSxRQUFPLElBQUcsaUJBQWdCLGNBQWEsTUFBSyxPQUFNLFVBQVMsU0FBUSxVQUFTLFlBQVksR0FDdkcsaUNBQUMsUUFBSyxJQUFJL0MsUUFBUSxPQUFNLGNBQWEsU0FBUyxLQUE5QztBQUFBO0FBQUE7QUFBQTtBQUFBLHFDQUFnRCxLQURsRDtBQUFBO0FBQUE7QUFBQTtBQUFBLHFDQUVBO0FBQUEsOEJBRUYsdUJBQUMsT0FBSSxNQUFNLEdBQ1Q7QUFBQSx1REFBQyxRQUFLLFVBQVMsTUFBSyxPQUFNLGtCQUFpQixZQUFXLE9BQU0sWUFBVyxVQUFTLFVBQVMsVUFBUyxjQUFhLFlBQVcsTUFBSyxTQUM1SG1ELGNBQUlNLFFBRFA7QUFBQTtBQUFBO0FBQUE7QUFBQSx1Q0FFQTtBQUFBLGdDQUNBLHVCQUFDLFFBQUssVUFBUyxRQUFPLE9BQU0sa0JBQ3pCOUMseUJBQWV3QyxJQUFJSyxJQUFJLEtBRDFCO0FBQUE7QUFBQTtBQUFBO0FBQUEsdUNBRUE7QUFBQSxtQ0FORjtBQUFBO0FBQUE7QUFBQTtBQUFBLHFDQU9BO0FBQUEsOEJBQ0E7QUFBQSxnQ0FBQztBQUFBO0FBQUEsa0NBQ0MsSUFBRztBQUFBLGtDQUNILFNBQVMsTUFBTXpCLGVBQWUsQ0FBQTJCLFNBQVFBLEtBQUtDLE9BQU8sQ0FBQ0MsR0FBR0MsTUFBTUEsTUFBTVQsR0FBRyxDQUFDO0FBQUEsa0NBQ3RFLEdBQUc7QUFBQSxrQ0FDSCxjQUFhO0FBQUEsa0NBQ2IsUUFBUSxFQUFFVSxJQUFJLGlCQUFpQjtBQUFBLGtDQUMvQixZQUFXO0FBQUEsa0NBQ1gsUUFBTztBQUFBLGtDQUNQLFlBQVk7QUFBQSxrQ0FFWixpQ0FBQyxRQUFLLElBQUk3RCxLQUFLLE9BQU0sa0JBQWlCLFNBQVMsS0FBL0M7QUFBQTtBQUFBO0FBQUE7QUFBQSx5Q0FBaUQ7QUFBQTtBQUFBLGdDQVZuRDtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsOEJBV0E7QUFBQTtBQUFBO0FBQUEsMEJBMUNLbUQ7QUFBQUEsMEJBRFA7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSx3QkE0Q0E7QUFBQSxzQkFDRDtBQUFBO0FBQUEsb0JBdkRIO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxrQkF3REEsS0ExREo7QUFBQTtBQUFBO0FBQUE7QUFBQSx5QkE0REE7QUFBQSxrQkFFQTtBQUFBLG9CQUFDO0FBQUE7QUFBQSxzQkFDQyxPQUFPekI7QUFBQUEsc0JBQ1AsVUFBVSxDQUFDb0MsTUFBTW5DLFNBQVNtQyxFQUFFQyxPQUFPQyxLQUFLO0FBQUEsc0JBQ3hDLFdBQVcsQ0FBQ0YsTUFBTTtBQUNoQiw0QkFBSUEsRUFBRUcsUUFBUSxXQUFXLENBQUNILEVBQUVJLFVBQVU7QUFDcENKLDRCQUFFSyxlQUFlO0FBQ2pCdkMscUNBQVc7QUFBQSx3QkFDYjtBQUFBLHNCQUNGO0FBQUEsc0JBQ0EsYUFBWTtBQUFBLHNCQUNaLE1BQU07QUFBQSxzQkFDTixVQUFVTTtBQUFBQSxzQkFDVixPQUFPO0FBQUEsd0JBQ0xTLE9BQU87QUFBQSx3QkFDUHlCLFlBQVk7QUFBQSx3QkFDWkMsUUFBUTtBQUFBLHdCQUNSQyxTQUFTO0FBQUEsd0JBQ1RoRCxPQUFPO0FBQUEsd0JBQ1BpRCxRQUFRO0FBQUEsd0JBQ1JDLFdBQVc7QUFBQSx3QkFDWEMsV0FBVztBQUFBLHdCQUNYQyxVQUFVO0FBQUEsd0JBQ1ZDLFlBQVk7QUFBQSx3QkFDWkMsWUFBWTtBQUFBLHdCQUNaQyxTQUFTO0FBQUEsd0JBQ1RDLGNBQWM7QUFBQSx3QkFDZEMsVUFBVTtBQUFBLHNCQUNaO0FBQUE7QUFBQSxvQkEzQkY7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLGtCQTJCSTtBQUFBLGtCQUVKLHVCQUFDLFFBQUssU0FBUSxpQkFBZ0IsT0FBTSxVQUNsQztBQUFBLDJDQUFDLFVBQU8sS0FBSyxLQUNYO0FBQUE7QUFBQSx3QkFBQztBQUFBO0FBQUEsMEJBQ0MsTUFBSztBQUFBLDBCQUNMLEtBQUtoRDtBQUFBQSwwQkFDTCxVQUFVRTtBQUFBQSwwQkFDVixRQUFPO0FBQUEsMEJBQ1A7QUFBQSwwQkFDQSxPQUFPLEVBQUUrQyxTQUFTLE9BQU87QUFBQTtBQUFBLHdCQU4zQjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsc0JBTTZCO0FBQUEsc0JBRTdCO0FBQUEsd0JBQUM7QUFBQTtBQUFBLDBCQUNDLE1BQUs7QUFBQSwwQkFDTCxLQUFLaEQ7QUFBQUEsMEJBQ0wsVUFBVUM7QUFBQUEsMEJBQ1YsUUFBTztBQUFBLDBCQUNQO0FBQUEsMEJBQ0EsT0FBTyxFQUFFK0MsU0FBUyxPQUFPO0FBQUE7QUFBQSx3QkFOM0I7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLHNCQU02QjtBQUFBLHNCQUU3QjtBQUFBLHdCQUFDO0FBQUE7QUFBQSwwQkFDQyxJQUFHO0FBQUEsMEJBQ0gsU0FBUyxNQUFNakQsYUFBYWtELFNBQVNDLE1BQU07QUFBQSwwQkFDM0MsU0FBUTtBQUFBLDBCQUNSLFlBQVc7QUFBQSwwQkFDWCxJQUFJO0FBQUEsMEJBQ0osSUFBSTtBQUFBLDBCQUNKLGNBQWE7QUFBQSwwQkFDYixRQUFRLEVBQUVyQixJQUFJLGlCQUFpQjtBQUFBLDBCQUMvQixZQUFXO0FBQUEsMEJBQ1gsUUFBTztBQUFBLDBCQUVQLGlDQUFDLFFBQUssSUFBSWhFLGFBQWEsT0FBTSxrQkFBaUIsU0FBUyxLQUF2RDtBQUFBO0FBQUE7QUFBQTtBQUFBLGlDQUF5RDtBQUFBO0FBQUEsd0JBWjNEO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxzQkFhQTtBQUFBLHNCQUNBO0FBQUEsd0JBQUM7QUFBQTtBQUFBLDBCQUNDLElBQUc7QUFBQSwwQkFDSCxTQUFTLE1BQU1tQyxjQUFjaUQsU0FBU0MsTUFBTTtBQUFBLDBCQUM1QyxTQUFRO0FBQUEsMEJBQ1IsWUFBVztBQUFBLDBCQUNYLElBQUk7QUFBQSwwQkFDSixJQUFJO0FBQUEsMEJBQ0osY0FBYTtBQUFBLDBCQUNiLFFBQVEsRUFBRXJCLElBQUksaUJBQWlCO0FBQUEsMEJBQy9CLFlBQVc7QUFBQSwwQkFDWCxRQUFPO0FBQUEsMEJBRVAsaUNBQUMsUUFBSyxJQUFJL0QsU0FBUyxPQUFNLGtCQUFpQixTQUFTLEtBQW5EO0FBQUE7QUFBQTtBQUFBO0FBQUEsaUNBQXFEO0FBQUE7QUFBQSx3QkFadkQ7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLHNCQWFBO0FBQUEsc0JBQ0E7QUFBQSx3QkFBQztBQUFBO0FBQUEsMEJBQ0MsSUFBRztBQUFBLDBCQUNILFNBQVMsTUFBTXVDLG9CQUFvQixDQUFDRCxnQkFBZ0I7QUFBQSwwQkFDcEQsU0FBUTtBQUFBLDBCQUNSLFlBQVc7QUFBQSwwQkFDWCxLQUFLO0FBQUEsMEJBQ0wsSUFBSTtBQUFBLDBCQUNKLElBQUk7QUFBQSwwQkFDSixjQUFhO0FBQUEsMEJBQ2IsSUFBSUEsbUJBQW1CLDZCQUE2QjtBQUFBLDBCQUNwRCxPQUFPQSxtQkFBbUIsYUFBYTtBQUFBLDBCQUN2QyxRQUFRLEVBQUV5QixJQUFJekIsbUJBQW1CLDZCQUE2QixrQkFBa0JkLE9BQU9jLG1CQUFtQixhQUFhLFdBQVc7QUFBQSwwQkFDbEksWUFBVztBQUFBLDBCQUNYLFVBQVM7QUFBQSwwQkFDVCxZQUFXO0FBQUEsMEJBRVg7QUFBQSxtREFBQyxRQUFLLElBQUlsQyxVQUFVLFNBQVMsT0FBN0I7QUFBQTtBQUFBO0FBQUE7QUFBQSxtQ0FBaUM7QUFBQSw0QkFDakMsdUJBQUMsUUFBTWtDLDZCQUFtQixrQkFBa0IsWUFBNUM7QUFBQTtBQUFBO0FBQUE7QUFBQSxtQ0FBcUQ7QUFBQTtBQUFBO0FBQUEsd0JBakJ2RDtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsc0JBa0JBO0FBQUEsc0JBQ0E7QUFBQSx3QkFBQztBQUFBO0FBQUEsMEJBQ0MsSUFBRztBQUFBLDBCQUNILFNBQVMsTUFBTUcsYUFBYSxDQUFDRCxTQUFTO0FBQUEsMEJBQ3RDLFNBQVE7QUFBQSwwQkFDUixZQUFXO0FBQUEsMEJBQ1gsS0FBSztBQUFBLDBCQUNMLElBQUk7QUFBQSwwQkFDSixJQUFJO0FBQUEsMEJBQ0osY0FBYTtBQUFBLDBCQUNiLElBQUlBLFlBQVksZ0ZBQWdGO0FBQUEsMEJBQ2hHLE9BQU9BLFlBQVksZUFBZTtBQUFBLDBCQUNsQyxRQUFRLEVBQUV1QixJQUFJdkIsWUFBWSw2QkFBNkIsa0JBQWtCaEIsT0FBT2dCLFlBQVksZUFBZSxXQUFXO0FBQUEsMEJBQ3RILFlBQVc7QUFBQSwwQkFDWCxVQUFTO0FBQUEsMEJBQ1QsWUFBVztBQUFBLDBCQUVYO0FBQUEsbURBQUMsUUFBSyxJQUFJbkMsWUFBWSxTQUFTLE9BQS9CO0FBQUE7QUFBQTtBQUFBO0FBQUEsbUNBQW1DO0FBQUEsNEJBQ25DLHVCQUFDLFFBQU1tQyxzQkFBWSxrQkFBa0IsZ0JBQXJDO0FBQUE7QUFBQTtBQUFBO0FBQUEsbUNBQWtEO0FBQUE7QUFBQTtBQUFBLHdCQWpCcEQ7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLHNCQWtCQTtBQUFBLHlCQWxGRjtBQUFBO0FBQUE7QUFBQTtBQUFBLDJCQW1GQTtBQUFBLG9CQUVDSixXQUNDO0FBQUEsc0JBQUM7QUFBQTtBQUFBLHdCQUNDLElBQUc7QUFBQSx3QkFDSCxTQUFTQztBQUFBQSx3QkFDVCxTQUFRO0FBQUEsd0JBQ1IsWUFBVztBQUFBLHdCQUNYLEtBQUk7QUFBQSx3QkFDSixJQUFJO0FBQUEsd0JBQ0osSUFBSTtBQUFBLHdCQUNKLElBQUc7QUFBQSx3QkFDSCxRQUFPO0FBQUEsd0JBQ1AsYUFBWTtBQUFBLHdCQUNaLGNBQWE7QUFBQSx3QkFDYixRQUFRLEVBQUUwQixJQUFJLDBCQUEwQjtBQUFBLHdCQUN4QyxZQUFXO0FBQUEsd0JBQ1gsUUFBTztBQUFBLHdCQUNQLEtBQUs7QUFBQSwwQkFDSHNCLFdBQVc7QUFBQSwwQkFDWCxvQkFBb0I7QUFBQSw0QkFDbEIsWUFBWSxFQUFFM0MsU0FBUyxFQUFFO0FBQUEsNEJBQ3pCLE9BQU8sRUFBRUEsU0FBUyxJQUFJO0FBQUEsMEJBQ3hCO0FBQUEsd0JBQ0Y7QUFBQSx3QkFFQTtBQUFBLGlEQUFDLFFBQUssSUFBSXZDLFVBQVUsT0FBTSxXQUFVLFNBQVMsS0FBN0M7QUFBQTtBQUFBO0FBQUE7QUFBQSxpQ0FBK0M7QUFBQSwwQkFDL0MsdUJBQUMsUUFBSyxVQUFTLE1BQUssT0FBTSxXQUFVLFlBQVcsT0FBTSxvQkFBckQ7QUFBQTtBQUFBO0FBQUE7QUFBQSxpQ0FBeUQ7QUFBQTtBQUFBO0FBQUEsc0JBeEIzRDtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsb0JBeUJBLElBRUE7QUFBQSxzQkFBQztBQUFBO0FBQUEsd0JBQ0MsSUFBRztBQUFBLHdCQUNILFNBQVMsTUFBTTJCLFdBQVc7QUFBQSx3QkFDMUIsR0FBRztBQUFBLHdCQUNILElBQUtGLE1BQU0wRCxLQUFLLEtBQU12RCxlQUFlQSxZQUFZWixTQUFTLElBQU0sVUFBVTtBQUFBLHdCQUMxRSxPQUFRUyxNQUFNMEQsS0FBSyxLQUFNdkQsZUFBZUEsWUFBWVosU0FBUyxJQUFNLFVBQVU7QUFBQSx3QkFDN0UsY0FBYTtBQUFBLHdCQUNiLFlBQVc7QUFBQSx3QkFDWCxRQUFTUyxNQUFNMEQsS0FBSyxLQUFNdkQsZUFBZUEsWUFBWVosU0FBUyxJQUFNLEVBQUV1QixTQUFTLEtBQUs2QyxXQUFXLGNBQWMsSUFBSSxDQUFDO0FBQUEsd0JBQ2xILFFBQVMzRCxNQUFNMEQsS0FBSyxLQUFNdkQsZUFBZUEsWUFBWVosU0FBUyxJQUFNLFlBQVk7QUFBQSx3QkFFaEYsaUNBQUMsUUFBSyxJQUFJekIsUUFBUSxTQUFTLEtBQTNCO0FBQUE7QUFBQTtBQUFBO0FBQUEsK0JBQTZCO0FBQUE7QUFBQSxzQkFYL0I7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLG9CQVlBO0FBQUEsdUJBOUhKO0FBQUE7QUFBQTtBQUFBO0FBQUEseUJBZ0lBO0FBQUE7QUFBQTtBQUFBLGNBM09GO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxZQTRPQTtBQUFBO0FBQUEsVUFsUEY7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLFFBbVBBO0FBQUEsUUFHQTtBQUFBLFVBQUM7QUFBQTtBQUFBLFlBQ0MsU0FBUyxFQUFFZ0QsU0FBUyxHQUFHQyxHQUFHLEdBQUc7QUFBQSxZQUM3QixTQUFTLEVBQUVELFNBQVMsR0FBR0MsR0FBRyxFQUFFO0FBQUEsWUFDNUIsWUFBWSxFQUFFQyxVQUFVLEtBQUtLLE9BQU8sSUFBSTtBQUFBLFlBQ3hDLEdBQUU7QUFBQSxZQUVGO0FBQUE7QUFBQSxnQkFBQztBQUFBO0FBQUEsa0JBQ0MsVUFBUztBQUFBLGtCQUNULFlBQVc7QUFBQSxrQkFDWCxPQUFNO0FBQUEsa0JBQ04sSUFBSTtBQUFBLGtCQUNKLFdBQVU7QUFBQSxrQkFDVixlQUFjO0FBQUEsa0JBQ2QsZUFBYztBQUFBLGtCQUFPO0FBQUE7QUFBQSxnQkFQdkI7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLGNBVUE7QUFBQSxjQUNBLHVCQUFDLFFBQUssS0FBSyxHQUFHLE1BQUssUUFBTyxTQUFRLFVBQy9CNUIsc0JBQVk4QjtBQUFBQSxnQkFBSSxDQUFDcUMsTUFBTTFCLE1BQ3RCO0FBQUEsa0JBQUM7QUFBQTtBQUFBLG9CQUVDLElBQUc7QUFBQSxvQkFDSCxZQUFZLEVBQUVuQixHQUFHLElBQUlXLE9BQU8sS0FBSztBQUFBLG9CQUNqQyxVQUFVLEVBQUVBLE9BQU8sS0FBSztBQUFBLG9CQUN4QixTQUFRO0FBQUEsb0JBQ1IsZUFBYztBQUFBLG9CQUNkLFlBQVc7QUFBQSxvQkFDWCxLQUFLO0FBQUEsb0JBQ0wsSUFBSTtBQUFBLG9CQUNKLElBQUk7QUFBQSxvQkFDSixJQUFJa0MsS0FBS2hFO0FBQUFBLG9CQUNULFFBQU87QUFBQSxvQkFDUCxhQUFhZ0UsS0FBSy9EO0FBQUFBLG9CQUNsQixjQUFhO0FBQUEsb0JBQ2IsUUFBTztBQUFBLG9CQUNQLFlBQVc7QUFBQSxvQkFDWCxRQUFRO0FBQUEsc0JBQ055QixXQUFXO0FBQUEsb0JBQ2I7QUFBQSxvQkFDQSxTQUFTLE1BQU07QUFDYnJCLCtCQUFTMkQsS0FBS2pFLElBQUk7QUFDbEJrRSxpQ0FBVyxNQUFNM0QsV0FBVzBELEtBQUtqRSxJQUFJLEdBQUcsR0FBRztBQUFBLG9CQUM3QztBQUFBLG9CQUNBLE1BQUs7QUFBQSxvQkFDTCxNQUFLO0FBQUEsb0JBQ0wsTUFBSztBQUFBLG9CQUVMO0FBQUEsNkNBQUMsUUFBSyxJQUFJaUUsS0FBS2xFLE1BQU0sU0FBUyxHQUFHLE9BQU9rRSxLQUFLOUQsYUFBN0M7QUFBQTtBQUFBO0FBQUE7QUFBQSw2QkFBdUQ7QUFBQSxzQkFDdkQsdUJBQUMsUUFBSyxVQUFTLFFBQU8sWUFBVyxPQUFNLE9BQU0sa0JBQWlCLFdBQVUsVUFDckU4RCxlQUFLakUsUUFEUjtBQUFBO0FBQUE7QUFBQTtBQUFBLDZCQUVBO0FBQUE7QUFBQTtBQUFBLGtCQTlCS3VDO0FBQUFBLGtCQURQO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsZ0JBZ0NBO0FBQUEsY0FDRCxLQW5DSDtBQUFBO0FBQUE7QUFBQTtBQUFBLHFCQW9DQTtBQUFBO0FBQUE7QUFBQSxVQXJERjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsUUFzREE7QUFBQSxXQW5WRjtBQUFBO0FBQUE7QUFBQTtBQUFBLGFBb1ZBO0FBQUE7QUFBQSxJQTlWRjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsRUErVkE7QUFFSjtBQUFFNEIsTUFsWEkvRDtBQW9YTixlQUFlQTtBQUFjLElBQUFsQixJQUFBRSxLQUFBK0U7QUFBQSxhQUFBakYsSUFBQTtBQUFBLGFBQUFFLEtBQUE7QUFBQSxhQUFBK0UsS0FBQSIsIm5hbWVzIjpbIlJlYWN0IiwiQm94IiwiRmxleCIsIlRleHQiLCJWU3RhY2siLCJIU3RhY2siLCJJY29uIiwibW90aW9uIiwiQW5pbWF0ZVByZXNlbmNlIiwiRmlTZW5kIiwiRmlCb29rIiwiRmlDaGVja1NxdWFyZSIsIkZpQ29kZSIsIkZpTXVzaWMiLCJGaVBhcGVyY2xpcCIsIkZpSW1hZ2UiLCJGaUZpbGUiLCJGaVgiLCJGaVNxdWFyZSIsIkZpU2VhcmNoIiwiRmlUZXJtaW5hbCIsIkFJX0xPR08iLCJNb3Rpb25Cb3giLCJjcmVhdGUiLCJfYyIsIk1vdGlvbkZsZXgiLCJfYzIiLCJmb3JtYXRGaWxlU2l6ZSIsImRhdGFVcmwiLCJiYXNlNjQiLCJzcGxpdCIsImJ5dGVzIiwiTWF0aCIsInJvdW5kIiwibGVuZ3RoIiwidG9GaXhlZCIsIlNVR0dFU1RJT05TIiwiaWNvbiIsInRleHQiLCJjb2xvciIsImJvcmRlckNvbG9yIiwiaWNvbkNvbG9yIiwiV2VsY29tZVNjcmVlbiIsImlucHV0Iiwic2V0SW5wdXQiLCJoYW5kbGVTZW5kIiwiYXR0YWNobWVudHMiLCJzZXRBdHRhY2htZW50cyIsImZpbGVJbnB1dFJlZiIsImltYWdlSW5wdXRSZWYiLCJoYW5kbGVGaWxlVXBsb2FkIiwiaXNUeXBpbmciLCJoYW5kbGVTdG9wIiwid2ViU2VhcmNoRW5hYmxlZCIsInNldFdlYlNlYXJjaEVuYWJsZWQiLCJhZ2VudE1vZGUiLCJzZXRBZ2VudE1vZGUiLCJvcGFjaXR5IiwieSIsImR1cmF0aW9uIiwid2lkdGgiLCJoZWlnaHQiLCJib3JkZXJSYWRpdXMiLCJvYmplY3RGaXQiLCJkZWxheSIsImJveFNoYWRvdyIsIm1hcCIsImF0dCIsImlkeCIsInNjYWxlIiwidHlwZSIsInN0YXJ0c1dpdGgiLCJkYXRhIiwibmFtZSIsInByZXYiLCJmaWx0ZXIiLCJfIiwiaSIsImJnIiwiZSIsInRhcmdldCIsInZhbHVlIiwia2V5Iiwic2hpZnRLZXkiLCJwcmV2ZW50RGVmYXVsdCIsImJhY2tncm91bmQiLCJib3JkZXIiLCJvdXRsaW5lIiwicmVzaXplIiwibWluSGVpZ2h0IiwibWF4SGVpZ2h0IiwiZm9udFNpemUiLCJmb250RmFtaWx5IiwibGluZUhlaWdodCIsInBhZGRpbmciLCJtYXJnaW5Cb3R0b20iLCJvdmVyZmxvdyIsImRpc3BsYXkiLCJjdXJyZW50IiwiY2xpY2siLCJhbmltYXRpb24iLCJ0cmltIiwidHJhbnNmb3JtIiwiaXRlbSIsInNldFRpbWVvdXQiLCJfYzMiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiV2VsY29tZVNjcmVlbi50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0IGZyb20gXCJyZWFjdFwiO1xuaW1wb3J0IHtcbiAgQm94LFxuICBGbGV4LFxuICBUZXh0LFxuICBWU3RhY2ssXG4gIEhTdGFjayxcbiAgSWNvbixcbn0gZnJvbSBcIkBjaGFrcmEtdWkvcmVhY3RcIjtcbmltcG9ydCB7IG1vdGlvbiwgQW5pbWF0ZVByZXNlbmNlIH0gZnJvbSBcImZyYW1lci1tb3Rpb25cIjtcbmltcG9ydCB7XG4gIEZpU2VuZCxcbiAgRmlCb29rLFxuICBGaUNoZWNrU3F1YXJlLFxuICBGaUNvZGUsXG4gIEZpTXVzaWMsXG4gIEZpUGFwZXJjbGlwLFxuICBGaUltYWdlLFxuICBGaUZpbGUsXG4gIEZpWCxcbiAgRmlTcXVhcmUsXG4gIEZpU2VhcmNoLFxuICBGaVRlcm1pbmFsLFxufSBmcm9tIFwicmVhY3QtaWNvbnMvZmlcIjtcblxuY29uc3QgQUlfTE9HTyA9IFwiL2FpLWxvZ28ucG5nXCI7XG5jb25zdCBNb3Rpb25Cb3ggPSBtb3Rpb24uY3JlYXRlKEJveCBhcyBhbnkpO1xuY29uc3QgTW90aW9uRmxleCA9IG1vdGlvbi5jcmVhdGUoRmxleCBhcyBhbnkpO1xuXG50eXBlIFdlbGNvbWVTY3JlZW5Qcm9wcyA9IHtcbiAgaW5wdXQ6IHN0cmluZztcbiAgc2V0SW5wdXQ6ICh2YWx1ZTogc3RyaW5nKSA9PiB2b2lkO1xuICBoYW5kbGVTZW5kOiAodGV4dD86IHN0cmluZykgPT4gdm9pZDtcbiAgYXR0YWNobWVudHM6IHsgdHlwZTogc3RyaW5nOyBkYXRhOiBzdHJpbmc7IG5hbWU6IHN0cmluZyB9W107XG4gIHNldEF0dGFjaG1lbnRzOiBSZWFjdC5EaXNwYXRjaDxSZWFjdC5TZXRTdGF0ZUFjdGlvbjx7IHR5cGU6IHN0cmluZzsgZGF0YTogc3RyaW5nOyBuYW1lOiBzdHJpbmcgfVtdPj47XG4gIGZpbGVJbnB1dFJlZjogUmVhY3QuUmVmT2JqZWN0PEhUTUxJbnB1dEVsZW1lbnQgfCBudWxsPjtcbiAgaW1hZ2VJbnB1dFJlZjogUmVhY3QuUmVmT2JqZWN0PEhUTUxJbnB1dEVsZW1lbnQgfCBudWxsPjtcbiAgaGFuZGxlRmlsZVVwbG9hZDogKGU6IFJlYWN0LkNoYW5nZUV2ZW50PEhUTUxJbnB1dEVsZW1lbnQ+KSA9PiB2b2lkO1xuICBpc1R5cGluZzogYm9vbGVhbjtcbiAgaGFuZGxlU3RvcDogKCkgPT4gdm9pZDtcbiAgd2ViU2VhcmNoRW5hYmxlZD86IGJvb2xlYW47XG4gIHNldFdlYlNlYXJjaEVuYWJsZWQ/OiAodmFsOiBib29sZWFuKSA9PiB2b2lkO1xuICBhZ2VudE1vZGU/OiBib29sZWFuO1xuICBzZXRBZ2VudE1vZGU/OiAodmFsOiBib29sZWFuKSA9PiB2b2lkO1xufTtcblxuY29uc3QgZm9ybWF0RmlsZVNpemUgPSAoZGF0YVVybDogc3RyaW5nKSA9PiB7XG4gIGNvbnN0IGJhc2U2NCA9IGRhdGFVcmwuc3BsaXQoXCIsXCIpWzFdIHx8IFwiXCI7XG4gIGNvbnN0IGJ5dGVzID0gTWF0aC5yb3VuZCgoYmFzZTY0Lmxlbmd0aCAqIDMpIC8gNCk7XG4gIGlmIChieXRlcyA8IDEwMjQpIHJldHVybiBgJHtieXRlc30gQmA7XG4gIGlmIChieXRlcyA8IDEwMjQgKiAxMDI0KSByZXR1cm4gYCR7KGJ5dGVzIC8gMTAyNCkudG9GaXhlZCgxKX0gS0JgO1xuICByZXR1cm4gYCR7KGJ5dGVzIC8gKDEwMjQgKiAxMDI0KSkudG9GaXhlZCgxKX0gTUJgO1xufTtcblxuY29uc3QgU1VHR0VTVElPTlMgPSBbXG4gIHsgaWNvbjogRmlCb29rLCB0ZXh0OiBcIkV4cGxhaW4gcXVhbnR1bSBwaHlzaWNzXCIsIGNvbG9yOiBcInJnYmEoMTY4LCA4NSwgMjQ3LCAwLjE1KVwiLCBib3JkZXJDb2xvcjogXCJyZ2JhKDE2OCwgODUsIDI0NywgMC4yKVwiLCBpY29uQ29sb3I6IFwicHVycGxlLjMwMFwiIH0sXG4gIHsgaWNvbjogRmlDaGVja1NxdWFyZSwgdGV4dDogXCJIZWxwIG1lIHN0dWR5IGZvciBleGFtc1wiLCBjb2xvcjogXCJyZ2JhKDU5LCAxMzAsIDI0NiwgMC4xNSlcIiwgYm9yZGVyQ29sb3I6IFwicmdiYSg1OSwgMTMwLCAyNDYsIDAuMilcIiwgaWNvbkNvbG9yOiBcImJsdWUuMzAwXCIgfSxcbiAgeyBpY29uOiBGaUNvZGUsIHRleHQ6IFwiV3JpdGUgYSBSZWFjdCBjb21wb25lbnRcIiwgY29sb3I6IFwicmdiYSgzNCwgMTk3LCA5NCwgMC4xNSlcIiwgYm9yZGVyQ29sb3I6IFwicmdiYSgzNCwgMTk3LCA5NCwgMC4yKVwiLCBpY29uQ29sb3I6IFwiZ3JlZW4uMzAwXCIgfSxcbiAgeyBpY29uOiBGaU11c2ljLCB0ZXh0OiBcIlN1Z2dlc3QgZm9jdXMgbXVzaWNcIiwgY29sb3I6IFwicmdiYSgyNDksIDExNSwgMjIsIDAuMTUpXCIsIGJvcmRlckNvbG9yOiBcInJnYmEoMjQ5LCAxMTUsIDIyLCAwLjIpXCIsIGljb25Db2xvcjogXCJvcmFuZ2UuMzAwXCIgfSxcbl07XG5cbmNvbnN0IFdlbGNvbWVTY3JlZW4gPSAoe1xuICBpbnB1dCxcbiAgc2V0SW5wdXQsXG4gIGhhbmRsZVNlbmQsXG4gIGF0dGFjaG1lbnRzLFxuICBzZXRBdHRhY2htZW50cyxcbiAgZmlsZUlucHV0UmVmLFxuICBpbWFnZUlucHV0UmVmLFxuICBoYW5kbGVGaWxlVXBsb2FkLFxuICBpc1R5cGluZyxcbiAgaGFuZGxlU3RvcCxcbiAgd2ViU2VhcmNoRW5hYmxlZCA9IGZhbHNlLFxuICBzZXRXZWJTZWFyY2hFbmFibGVkID0gKCkgPT4ge30sXG4gIGFnZW50TW9kZSA9IGZhbHNlLFxuICBzZXRBZ2VudE1vZGUgPSAoKSA9PiB7fSxcbn06IFdlbGNvbWVTY3JlZW5Qcm9wcykgPT4ge1xuICByZXR1cm4gKFxuICAgIDxGbGV4XG4gICAgICBkaXJlY3Rpb249XCJjb2x1bW5cIlxuICAgICAgYWxpZ249XCJjZW50ZXJcIlxuICAgICAganVzdGlmeT1cImNlbnRlclwiXG4gICAgICBmbGV4PVwiMVwiXG4gICAgICBoPVwiMTAwJVwiXG4gICAgICBjb2xvcj1cIndoaXRlXCJcbiAgICAgIHB4PXs0fVxuICAgICAgcGI9ezIwfVxuICAgID5cbiAgICAgIDxWU3RhY2sgZ2FwPXs4fSBtYXhXPVwiNjQwcHhcIiB3PVwiZnVsbFwiPlxuICAgICAgICB7LyogSGVybyBTZWN0aW9uICovfVxuICAgICAgICA8TW90aW9uQm94XG4gICAgICAgICAgaW5pdGlhbD17eyBvcGFjaXR5OiAwLCB5OiAyMCB9fVxuICAgICAgICAgIGFuaW1hdGU9e3sgb3BhY2l0eTogMSwgeTogMCB9fVxuICAgICAgICAgIHRyYW5zaXRpb249e3sgZHVyYXRpb246IDAuNSB9fVxuICAgICAgICA+XG4gICAgICAgICAgPFZTdGFjayBnYXA9ezR9PlxuICAgICAgICAgICAgPEJveFxuICAgICAgICAgICAgICBwPXszfVxuICAgICAgICAgICAgICBiZz1cIndoaXRlQWxwaGEuNTBcIlxuICAgICAgICAgICAgICBib3JkZXJSYWRpdXM9XCIyeGxcIlxuICAgICAgICAgICAgICBib3hTaGFkb3c9XCIwIDhweCAzMnB4IHJnYmEoMCwwLDAsMC4zKSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwyNTUsMjU1LDAuMDUpXCJcbiAgICAgICAgICAgICAgYm9yZGVyPVwiMXB4IHNvbGlkXCJcbiAgICAgICAgICAgICAgYm9yZGVyQ29sb3I9XCJ3aGl0ZUFscGhhLjEwMFwiXG4gICAgICAgICAgICA+XG4gICAgICAgICAgICAgIDxpbWdcbiAgICAgICAgICAgICAgICBzcmM9e0FJX0xPR099XG4gICAgICAgICAgICAgICAgYWx0PVwiRm94IEFJXCJcbiAgICAgICAgICAgICAgICBzdHlsZT17e1xuICAgICAgICAgICAgICAgICAgd2lkdGg6IFwiNTZweFwiLFxuICAgICAgICAgICAgICAgICAgaGVpZ2h0OiBcIjU2cHhcIixcbiAgICAgICAgICAgICAgICAgIGJvcmRlclJhZGl1czogXCIxMnB4XCIsXG4gICAgICAgICAgICAgICAgICBvYmplY3RGaXQ6IFwiY292ZXJcIixcbiAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgPC9Cb3g+XG4gICAgICAgICAgICA8VlN0YWNrIGdhcD17MX0+XG4gICAgICAgICAgICAgIDxUZXh0IGZvbnRTaXplPVwiMnhsXCIgZm9udFdlaWdodD1cIjcwMFwiIGNvbG9yPVwid2hpdGVcIiBsZXR0ZXJTcGFjaW5nPVwiLTAuMDFlbVwiPlxuICAgICAgICAgICAgICAgIEhpLCBJJ20gRm94IEFJXG4gICAgICAgICAgICAgIDwvVGV4dD5cbiAgICAgICAgICAgICAgPFRleHQgZm9udFNpemU9XCJtZFwiIGNvbG9yPVwid2hpdGVBbHBoYS41MDBcIiB0ZXh0QWxpZ249XCJjZW50ZXJcIj5cbiAgICAgICAgICAgICAgICBJIGNhbiBoZWxwIHlvdSBzdHVkeSwgY29kZSwgb3IganVzdCBjaGF0LlxuICAgICAgICAgICAgICA8L1RleHQ+XG4gICAgICAgICAgICA8L1ZTdGFjaz5cbiAgICAgICAgICA8L1ZTdGFjaz5cbiAgICAgICAgPC9Nb3Rpb25Cb3g+XG5cbiAgICAgICAgey8qIElucHV0IEFyZWEg4oCUIEdsYXNzbW9ycGhpYyAqL31cbiAgICAgICAgPE1vdGlvbkJveFxuICAgICAgICAgIGluaXRpYWw9e3sgb3BhY2l0eTogMCwgeTogMjAgfX1cbiAgICAgICAgICBhbmltYXRlPXt7IG9wYWNpdHk6IDEsIHk6IDAgfX1cbiAgICAgICAgICB0cmFuc2l0aW9uPXt7IGR1cmF0aW9uOiAwLjUsIGRlbGF5OiAwLjEgfX1cbiAgICAgICAgICB3PVwiZnVsbFwiXG4gICAgICAgID5cbiAgICAgICAgICA8Qm94XG4gICAgICAgICAgICB3PVwiZnVsbFwiXG4gICAgICAgICAgICBiZz1cInJnYmEoMzksIDM5LCA0MiwgMC44NSlcIlxuICAgICAgICAgICAgYmFja2Ryb3BGaWx0ZXI9XCJibHVyKDIwcHgpXCJcbiAgICAgICAgICAgIGJvcmRlclJhZGl1cz1cIjJ4bFwiXG4gICAgICAgICAgICBwPXszfVxuICAgICAgICAgICAgYm9yZGVyPVwiMXB4IHNvbGlkXCJcbiAgICAgICAgICAgIGJvcmRlckNvbG9yPVwid2hpdGVBbHBoYS4xMDBcIlxuICAgICAgICAgICAgYm94U2hhZG93PVwiMCA4cHggMzJweCByZ2JhKDAsMCwwLDAuNCksIGluc2V0IDAgMXB4IDAgcmdiYSgyNTUsMjU1LDI1NSwwLjA1KVwiXG4gICAgICAgICAgICB0cmFuc2l0aW9uPVwiYWxsIDAuMjVzIGVhc2VcIlxuICAgICAgICAgICAgX2ZvY3VzV2l0aGluPXt7XG4gICAgICAgICAgICAgIGJvcmRlckNvbG9yOiBcInJnYmEoMTY4LCA4NSwgMjQ3LCAwLjUpXCIsXG4gICAgICAgICAgICAgIGJveFNoYWRvdzogXCIwIDhweCA0MHB4IHJnYmEoMTY4LCA4NSwgMjQ3LCAwLjEyKSwgaW5zZXQgMCAxcHggMCByZ2JhKDI1NSwyNTUsMjU1LDAuMDUpXCIsXG4gICAgICAgICAgICB9fVxuICAgICAgICAgID5cbiAgICAgICAgICAgIHsvKiBBdHRhY2htZW50IENoaXBzICovfVxuICAgICAgICAgICAgPEFuaW1hdGVQcmVzZW5jZT5cbiAgICAgICAgICAgICAge2F0dGFjaG1lbnRzICYmIGF0dGFjaG1lbnRzLmxlbmd0aCA+IDAgJiYgKFxuICAgICAgICAgICAgICAgIDxNb3Rpb25GbGV4XG4gICAgICAgICAgICAgICAgICBpbml0aWFsPXt7IGhlaWdodDogMCwgb3BhY2l0eTogMCB9fVxuICAgICAgICAgICAgICAgICAgYW5pbWF0ZT17eyBoZWlnaHQ6IFwiYXV0b1wiLCBvcGFjaXR5OiAxIH19XG4gICAgICAgICAgICAgICAgICBleGl0PXt7IGhlaWdodDogMCwgb3BhY2l0eTogMCB9fVxuICAgICAgICAgICAgICAgICAgZ2FwPXsyfVxuICAgICAgICAgICAgICAgICAgd3JhcD1cIndyYXBcIlxuICAgICAgICAgICAgICAgICAgbWI9ezJ9XG4gICAgICAgICAgICAgICAgICBvdmVyZmxvdz1cImhpZGRlblwiXG4gICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAge2F0dGFjaG1lbnRzLm1hcCgoYXR0LCBpZHgpID0+IChcbiAgICAgICAgICAgICAgICAgICAgPE1vdGlvbkJveFxuICAgICAgICAgICAgICAgICAgICAgIGtleT17aWR4fVxuICAgICAgICAgICAgICAgICAgICAgIGluaXRpYWw9e3sgc2NhbGU6IDAuOCwgb3BhY2l0eTogMCB9fVxuICAgICAgICAgICAgICAgICAgICAgIGFuaW1hdGU9e3sgc2NhbGU6IDEsIG9wYWNpdHk6IDEgfX1cbiAgICAgICAgICAgICAgICAgICAgICBleGl0PXt7IHNjYWxlOiAwLjgsIG9wYWNpdHk6IDAgfX1cbiAgICAgICAgICAgICAgICAgICAgICBkaXNwbGF5PVwiZmxleFwiXG4gICAgICAgICAgICAgICAgICAgICAgYWxpZ25JdGVtcz1cImNlbnRlclwiXG4gICAgICAgICAgICAgICAgICAgICAgZ2FwPXsyfVxuICAgICAgICAgICAgICAgICAgICAgIHB4PXszfVxuICAgICAgICAgICAgICAgICAgICAgIHB5PXsyfVxuICAgICAgICAgICAgICAgICAgICAgIGJnPVwid2hpdGVBbHBoYS4xMDBcIlxuICAgICAgICAgICAgICAgICAgICAgIGJvcmRlclJhZGl1cz1cInhsXCJcbiAgICAgICAgICAgICAgICAgICAgICBib3JkZXI9XCIxcHggc29saWRcIlxuICAgICAgICAgICAgICAgICAgICAgIGJvcmRlckNvbG9yPVwid2hpdGVBbHBoYS4xMDBcIlxuICAgICAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICAgICAge2F0dC50eXBlLnN0YXJ0c1dpdGgoXCJpbWFnZS9cIikgPyAoXG4gICAgICAgICAgICAgICAgICAgICAgICA8Qm94IHc9XCIzMnB4XCIgaD1cIjMycHhcIiBib3JkZXJSYWRpdXM9XCJtZFwiIG92ZXJmbG93PVwiaGlkZGVuXCIgZmxleFNocmluaz17MH0+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIDxpbWcgc3JjPXthdHQuZGF0YX0gYWx0PVwicHJldmlld1wiIHN0eWxlPXt7IHdpZHRoOiBcIjEwMCVcIiwgaGVpZ2h0OiBcIjEwMCVcIiwgb2JqZWN0Rml0OiBcImNvdmVyXCIgfX0gLz5cbiAgICAgICAgICAgICAgICAgICAgICAgIDwvQm94PlxuICAgICAgICAgICAgICAgICAgICAgICkgOiAoXG4gICAgICAgICAgICAgICAgICAgICAgICA8RmxleCB3PVwiMzJweFwiIGg9XCIzMnB4XCIgYmc9XCJwdXJwbGUuNTAwLzIwXCIgYm9yZGVyUmFkaXVzPVwibWRcIiBhbGlnbj1cImNlbnRlclwiIGp1c3RpZnk9XCJjZW50ZXJcIiBmbGV4U2hyaW5rPXswfT5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgPEljb24gYXM9e0ZpRmlsZX0gY29sb3I9XCJwdXJwbGUuMzAwXCIgYm94U2l6ZT17NH0gLz5cbiAgICAgICAgICAgICAgICAgICAgICAgIDwvRmxleD5cbiAgICAgICAgICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgICAgICAgICAgIDxCb3ggbWluVz17MH0+XG4gICAgICAgICAgICAgICAgICAgICAgICA8VGV4dCBmb250U2l6ZT1cInhzXCIgY29sb3I9XCJ3aGl0ZUFscGhhLjkwMFwiIGZvbnRXZWlnaHQ9XCI1MDBcIiB3aGl0ZVNwYWNlPVwibm93cmFwXCIgb3ZlcmZsb3c9XCJoaWRkZW5cIiB0ZXh0T3ZlcmZsb3c9XCJlbGxpcHNpc1wiIG1heFc9XCIxMjBweFwiPlxuICAgICAgICAgICAgICAgICAgICAgICAgICB7YXR0Lm5hbWV9XG4gICAgICAgICAgICAgICAgICAgICAgICA8L1RleHQ+XG4gICAgICAgICAgICAgICAgICAgICAgICA8VGV4dCBmb250U2l6ZT1cIjEwcHhcIiBjb2xvcj1cIndoaXRlQWxwaGEuNDAwXCI+XG4gICAgICAgICAgICAgICAgICAgICAgICAgIHtmb3JtYXRGaWxlU2l6ZShhdHQuZGF0YSl9XG4gICAgICAgICAgICAgICAgICAgICAgICA8L1RleHQ+XG4gICAgICAgICAgICAgICAgICAgICAgPC9Cb3g+XG4gICAgICAgICAgICAgICAgICAgICAgPEJveFxuICAgICAgICAgICAgICAgICAgICAgICAgYXM9XCJidXR0b25cIlxuICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0QXR0YWNobWVudHMocHJldiA9PiBwcmV2LmZpbHRlcigoXywgaSkgPT4gaSAhPT0gaWR4KSl9XG4gICAgICAgICAgICAgICAgICAgICAgICBwPXsxfVxuICAgICAgICAgICAgICAgICAgICAgICAgYm9yZGVyUmFkaXVzPVwiZnVsbFwiXG4gICAgICAgICAgICAgICAgICAgICAgICBfaG92ZXI9e3sgYmc6IFwid2hpdGVBbHBoYS4yMDBcIiB9fVxuICAgICAgICAgICAgICAgICAgICAgICAgdHJhbnNpdGlvbj1cImFsbCAwLjE1c1wiXG4gICAgICAgICAgICAgICAgICAgICAgICBjdXJzb3I9XCJwb2ludGVyXCJcbiAgICAgICAgICAgICAgICAgICAgICAgIGZsZXhTaHJpbms9ezB9XG4gICAgICAgICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgICAgICAgPEljb24gYXM9e0ZpWH0gY29sb3I9XCJ3aGl0ZUFscGhhLjUwMFwiIGJveFNpemU9ezN9IC8+XG4gICAgICAgICAgICAgICAgICAgICAgPC9Cb3g+XG4gICAgICAgICAgICAgICAgICAgIDwvTW90aW9uQm94PlxuICAgICAgICAgICAgICAgICAgKSl9XG4gICAgICAgICAgICAgICAgPC9Nb3Rpb25GbGV4PlxuICAgICAgICAgICAgICApfVxuICAgICAgICAgICAgPC9BbmltYXRlUHJlc2VuY2U+XG5cbiAgICAgICAgICAgIDx0ZXh0YXJlYVxuICAgICAgICAgICAgICB2YWx1ZT17aW5wdXR9XG4gICAgICAgICAgICAgIG9uQ2hhbmdlPXsoZSkgPT4gc2V0SW5wdXQoZS50YXJnZXQudmFsdWUpfVxuICAgICAgICAgICAgICBvbktleURvd249eyhlKSA9PiB7XG4gICAgICAgICAgICAgICAgaWYgKGUua2V5ID09PSBcIkVudGVyXCIgJiYgIWUuc2hpZnRLZXkpIHtcbiAgICAgICAgICAgICAgICAgIGUucHJldmVudERlZmF1bHQoKTtcbiAgICAgICAgICAgICAgICAgIGhhbmRsZVNlbmQoKTtcbiAgICAgICAgICAgICAgICB9XG4gICAgICAgICAgICAgIH19XG4gICAgICAgICAgICAgIHBsYWNlaG9sZGVyPVwiQXNrIGFueXRoaW5nLi4uXCJcbiAgICAgICAgICAgICAgcm93cz17MX1cbiAgICAgICAgICAgICAgZGlzYWJsZWQ9e2lzVHlwaW5nfVxuICAgICAgICAgICAgICBzdHlsZT17e1xuICAgICAgICAgICAgICAgIHdpZHRoOiBcIjEwMCVcIixcbiAgICAgICAgICAgICAgICBiYWNrZ3JvdW5kOiBcInRyYW5zcGFyZW50XCIsXG4gICAgICAgICAgICAgICAgYm9yZGVyOiBcIm5vbmVcIixcbiAgICAgICAgICAgICAgICBvdXRsaW5lOiBcIm5vbmVcIixcbiAgICAgICAgICAgICAgICBjb2xvcjogXCJ3aGl0ZVwiLFxuICAgICAgICAgICAgICAgIHJlc2l6ZTogXCJub25lXCIsXG4gICAgICAgICAgICAgICAgbWluSGVpZ2h0OiBcIjQwcHhcIixcbiAgICAgICAgICAgICAgICBtYXhIZWlnaHQ6IFwiMjAwcHhcIixcbiAgICAgICAgICAgICAgICBmb250U2l6ZTogXCIxNXB4XCIsXG4gICAgICAgICAgICAgICAgZm9udEZhbWlseTogXCInSW50ZXInLCAtYXBwbGUtc3lzdGVtLCBzYW5zLXNlcmlmXCIsXG4gICAgICAgICAgICAgICAgbGluZUhlaWdodDogXCIxLjZcIixcbiAgICAgICAgICAgICAgICBwYWRkaW5nOiAwLFxuICAgICAgICAgICAgICAgIG1hcmdpbkJvdHRvbTogXCI4cHhcIixcbiAgICAgICAgICAgICAgICBvdmVyZmxvdzogXCJhdXRvXCIsXG4gICAgICAgICAgICAgIH19XG4gICAgICAgICAgICAvPlxuICAgICAgICAgICAgPEZsZXgganVzdGlmeT1cInNwYWNlLWJldHdlZW5cIiBhbGlnbj1cImNlbnRlclwiPlxuICAgICAgICAgICAgICA8SFN0YWNrIGdhcD17MC41fT5cbiAgICAgICAgICAgICAgICA8aW5wdXRcbiAgICAgICAgICAgICAgICAgIHR5cGU9XCJmaWxlXCJcbiAgICAgICAgICAgICAgICAgIHJlZj17ZmlsZUlucHV0UmVmfVxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2hhbmRsZUZpbGVVcGxvYWR9XG4gICAgICAgICAgICAgICAgICBhY2NlcHQ9XCIucGRmLC5kb2MsLmRvY3gsLnR4dCwuY3N2LC5qc29uLC5tZFwiXG4gICAgICAgICAgICAgICAgICBtdWx0aXBsZVxuICAgICAgICAgICAgICAgICAgc3R5bGU9e3sgZGlzcGxheTogXCJub25lXCIgfX1cbiAgICAgICAgICAgICAgICAvPlxuICAgICAgICAgICAgICAgIDxpbnB1dFxuICAgICAgICAgICAgICAgICAgdHlwZT1cImZpbGVcIlxuICAgICAgICAgICAgICAgICAgcmVmPXtpbWFnZUlucHV0UmVmfVxuICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2hhbmRsZUZpbGVVcGxvYWR9XG4gICAgICAgICAgICAgICAgICBhY2NlcHQ9XCJpbWFnZS8qXCJcbiAgICAgICAgICAgICAgICAgIG11bHRpcGxlXG4gICAgICAgICAgICAgICAgICBzdHlsZT17eyBkaXNwbGF5OiBcIm5vbmVcIiB9fVxuICAgICAgICAgICAgICAgIC8+XG4gICAgICAgICAgICAgICAgPEJveFxuICAgICAgICAgICAgICAgICAgYXM9XCJidXR0b25cIlxuICAgICAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gZmlsZUlucHV0UmVmLmN1cnJlbnQ/LmNsaWNrKCl9XG4gICAgICAgICAgICAgICAgICBkaXNwbGF5PVwiZmxleFwiXG4gICAgICAgICAgICAgICAgICBhbGlnbkl0ZW1zPVwiY2VudGVyXCJcbiAgICAgICAgICAgICAgICAgIHB4PXsyLjV9XG4gICAgICAgICAgICAgICAgICBweT17MS41fVxuICAgICAgICAgICAgICAgICAgYm9yZGVyUmFkaXVzPVwibGdcIlxuICAgICAgICAgICAgICAgICAgX2hvdmVyPXt7IGJnOiBcIndoaXRlQWxwaGEuMTAwXCIgfX1cbiAgICAgICAgICAgICAgICAgIHRyYW5zaXRpb249XCJhbGwgMC4xNXNcIlxuICAgICAgICAgICAgICAgICAgY3Vyc29yPVwicG9pbnRlclwiXG4gICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgPEljb24gYXM9e0ZpUGFwZXJjbGlwfSBjb2xvcj1cIndoaXRlQWxwaGEuNDAwXCIgYm94U2l6ZT17NH0gLz5cbiAgICAgICAgICAgICAgICA8L0JveD5cbiAgICAgICAgICAgICAgICA8Qm94XG4gICAgICAgICAgICAgICAgICBhcz1cImJ1dHRvblwiXG4gICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBpbWFnZUlucHV0UmVmLmN1cnJlbnQ/LmNsaWNrKCl9XG4gICAgICAgICAgICAgICAgICBkaXNwbGF5PVwiZmxleFwiXG4gICAgICAgICAgICAgICAgICBhbGlnbkl0ZW1zPVwiY2VudGVyXCJcbiAgICAgICAgICAgICAgICAgIHB4PXsyLjV9XG4gICAgICAgICAgICAgICAgICBweT17MS41fVxuICAgICAgICAgICAgICAgICAgYm9yZGVyUmFkaXVzPVwibGdcIlxuICAgICAgICAgICAgICAgICAgX2hvdmVyPXt7IGJnOiBcIndoaXRlQWxwaGEuMTAwXCIgfX1cbiAgICAgICAgICAgICAgICAgIHRyYW5zaXRpb249XCJhbGwgMC4xNXNcIlxuICAgICAgICAgICAgICAgICAgY3Vyc29yPVwicG9pbnRlclwiXG4gICAgICAgICAgICAgICAgPlxuICAgICAgICAgICAgICAgICAgPEljb24gYXM9e0ZpSW1hZ2V9IGNvbG9yPVwid2hpdGVBbHBoYS40MDBcIiBib3hTaXplPXs0fSAvPlxuICAgICAgICAgICAgICAgIDwvQm94PlxuICAgICAgICAgICAgICAgIDxCb3hcbiAgICAgICAgICAgICAgICAgIGFzPVwiYnV0dG9uXCJcbiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldFdlYlNlYXJjaEVuYWJsZWQoIXdlYlNlYXJjaEVuYWJsZWQpfVxuICAgICAgICAgICAgICAgICAgZGlzcGxheT1cImZsZXhcIlxuICAgICAgICAgICAgICAgICAgYWxpZ25JdGVtcz1cImNlbnRlclwiXG4gICAgICAgICAgICAgICAgICBnYXA9ezEuNX1cbiAgICAgICAgICAgICAgICAgIHB4PXsyLjV9XG4gICAgICAgICAgICAgICAgICBweT17MX1cbiAgICAgICAgICAgICAgICAgIGJvcmRlclJhZGl1cz1cIm1kXCJcbiAgICAgICAgICAgICAgICAgIGJnPXt3ZWJTZWFyY2hFbmFibGVkID8gXCJyZ2JhKDU5LCAxMzAsIDI0NiwgMC4xNSlcIiA6IFwidHJhbnNwYXJlbnRcIn1cbiAgICAgICAgICAgICAgICAgIGNvbG9yPXt3ZWJTZWFyY2hFbmFibGVkID8gXCJibHVlLjMwMFwiIDogXCJncmF5LjUwMFwifVxuICAgICAgICAgICAgICAgICAgX2hvdmVyPXt7IGJnOiB3ZWJTZWFyY2hFbmFibGVkID8gXCJyZ2JhKDU5LCAxMzAsIDI0NiwgMC4yNSlcIiA6IFwid2hpdGVBbHBoYS4xMDBcIiwgY29sb3I6IHdlYlNlYXJjaEVuYWJsZWQgPyBcImJsdWUuMjAwXCIgOiBcImdyYXkuNDAwXCIgfX1cbiAgICAgICAgICAgICAgICAgIHRyYW5zaXRpb249XCJhbGwgMC4yc1wiXG4gICAgICAgICAgICAgICAgICBmb250U2l6ZT1cInhzXCJcbiAgICAgICAgICAgICAgICAgIGZvbnRXZWlnaHQ9XCI1MDBcIlxuICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgIDxJY29uIGFzPXtGaVNlYXJjaH0gYm94U2l6ZT17My41fSAvPlxuICAgICAgICAgICAgICAgICAgPFRleHQ+e3dlYlNlYXJjaEVuYWJsZWQgPyBcIldlYiBTZWFyY2ggT25cIiA6IFwiU2VhcmNoXCJ9PC9UZXh0PlxuICAgICAgICAgICAgICAgIDwvQm94PlxuICAgICAgICAgICAgICAgIDxCb3hcbiAgICAgICAgICAgICAgICAgIGFzPVwiYnV0dG9uXCJcbiAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldEFnZW50TW9kZSghYWdlbnRNb2RlKX1cbiAgICAgICAgICAgICAgICAgIGRpc3BsYXk9XCJmbGV4XCJcbiAgICAgICAgICAgICAgICAgIGFsaWduSXRlbXM9XCJjZW50ZXJcIlxuICAgICAgICAgICAgICAgICAgZ2FwPXsxLjV9XG4gICAgICAgICAgICAgICAgICBweD17Mi41fVxuICAgICAgICAgICAgICAgICAgcHk9ezF9XG4gICAgICAgICAgICAgICAgICBib3JkZXJSYWRpdXM9XCJtZFwiXG4gICAgICAgICAgICAgICAgICBiZz17YWdlbnRNb2RlID8gXCJsaW5lYXItZ3JhZGllbnQoMTM1ZGVnLCByZ2JhKDE2OCwgODUsIDI0NywgMC4xNSksIHJnYmEoOTksIDEwMiwgMjQxLCAwLjE1KSlcIiA6IFwidHJhbnNwYXJlbnRcIn1cbiAgICAgICAgICAgICAgICAgIGNvbG9yPXthZ2VudE1vZGUgPyBcInB1cnBsZS4zMDBcIiA6IFwiZ3JheS41MDBcIn1cbiAgICAgICAgICAgICAgICAgIF9ob3Zlcj17eyBiZzogYWdlbnRNb2RlID8gXCJyZ2JhKDE2OCwgODUsIDI0NywgMC4yNSlcIiA6IFwid2hpdGVBbHBoYS4xMDBcIiwgY29sb3I6IGFnZW50TW9kZSA/IFwicHVycGxlLjIwMFwiIDogXCJncmF5LjQwMFwiIH19XG4gICAgICAgICAgICAgICAgICB0cmFuc2l0aW9uPVwiYWxsIDAuMnNcIlxuICAgICAgICAgICAgICAgICAgZm9udFNpemU9XCJ4c1wiXG4gICAgICAgICAgICAgICAgICBmb250V2VpZ2h0PVwiNTAwXCJcbiAgICAgICAgICAgICAgICA+XG4gICAgICAgICAgICAgICAgICA8SWNvbiBhcz17RmlUZXJtaW5hbH0gYm94U2l6ZT17My41fSAvPlxuICAgICAgICAgICAgICAgICAgPFRleHQ+e2FnZW50TW9kZSA/IFwiQWdlbnQgTW9kZSBPblwiIDogXCJBZ2VudCBNb2RlXCJ9PC9UZXh0PlxuICAgICAgICAgICAgICAgIDwvQm94PlxuICAgICAgICAgICAgICA8L0hTdGFjaz5cblxuICAgICAgICAgICAgICB7aXNUeXBpbmcgPyAoXG4gICAgICAgICAgICAgICAgPEJveFxuICAgICAgICAgICAgICAgICAgYXM9XCJidXR0b25cIlxuICAgICAgICAgICAgICAgICAgb25DbGljaz17aGFuZGxlU3RvcH1cbiAgICAgICAgICAgICAgICAgIGRpc3BsYXk9XCJmbGV4XCJcbiAgICAgICAgICAgICAgICAgIGFsaWduSXRlbXM9XCJjZW50ZXJcIlxuICAgICAgICAgICAgICAgICAgZ2FwPVwiNnB4XCJcbiAgICAgICAgICAgICAgICAgIHB4PXszfVxuICAgICAgICAgICAgICAgICAgcHk9ezEuNX1cbiAgICAgICAgICAgICAgICAgIGJnPVwicmdiYSgyMzksIDY4LCA2OCwgMC4xNSlcIlxuICAgICAgICAgICAgICAgICAgYm9yZGVyPVwiMXB4IHNvbGlkXCJcbiAgICAgICAgICAgICAgICAgIGJvcmRlckNvbG9yPVwicmdiYSgyMzksIDY4LCA2OCwgMC4zKVwiXG4gICAgICAgICAgICAgICAgICBib3JkZXJSYWRpdXM9XCJ4bFwiXG4gICAgICAgICAgICAgICAgICBfaG92ZXI9e3sgYmc6IFwicmdiYSgyMzksIDY4LCA2OCwgMC4yNSlcIiB9fVxuICAgICAgICAgICAgICAgICAgdHJhbnNpdGlvbj1cImFsbCAwLjE1c1wiXG4gICAgICAgICAgICAgICAgICBjdXJzb3I9XCJwb2ludGVyXCJcbiAgICAgICAgICAgICAgICAgIGNzcz17e1xuICAgICAgICAgICAgICAgICAgICBhbmltYXRpb246IFwicHVsc2UgMnMgaW5maW5pdGVcIixcbiAgICAgICAgICAgICAgICAgICAgXCJAa2V5ZnJhbWVzIHB1bHNlXCI6IHtcbiAgICAgICAgICAgICAgICAgICAgICBcIjAlLCAxMDAlXCI6IHsgb3BhY2l0eTogMSB9LFxuICAgICAgICAgICAgICAgICAgICAgIFwiNTAlXCI6IHsgb3BhY2l0eTogMC43IH0sXG4gICAgICAgICAgICAgICAgICAgIH0sXG4gICAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgIDxJY29uIGFzPXtGaVNxdWFyZX0gY29sb3I9XCJyZWQuNDAwXCIgYm94U2l6ZT17M30gLz5cbiAgICAgICAgICAgICAgICAgIDxUZXh0IGZvbnRTaXplPVwieHNcIiBjb2xvcj1cInJlZC40MDBcIiBmb250V2VpZ2h0PVwiNjAwXCI+U3RvcDwvVGV4dD5cbiAgICAgICAgICAgICAgICA8L0JveD5cbiAgICAgICAgICAgICAgKSA6IChcbiAgICAgICAgICAgICAgICA8Qm94XG4gICAgICAgICAgICAgICAgICBhcz1cImJ1dHRvblwiXG4gICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBoYW5kbGVTZW5kKCl9XG4gICAgICAgICAgICAgICAgICBwPXsyfVxuICAgICAgICAgICAgICAgICAgYmc9eyhpbnB1dC50cmltKCkgfHwgKGF0dGFjaG1lbnRzICYmIGF0dGFjaG1lbnRzLmxlbmd0aCA+IDApKSA/IFwid2hpdGVcIiA6IFwid2hpdGVBbHBoYS4xMDBcIn1cbiAgICAgICAgICAgICAgICAgIGNvbG9yPXsoaW5wdXQudHJpbSgpIHx8IChhdHRhY2htZW50cyAmJiBhdHRhY2htZW50cy5sZW5ndGggPiAwKSkgPyBcImJsYWNrXCIgOiBcIndoaXRlQWxwaGEuNDAwXCJ9XG4gICAgICAgICAgICAgICAgICBib3JkZXJSYWRpdXM9XCJ4bFwiXG4gICAgICAgICAgICAgICAgICB0cmFuc2l0aW9uPVwiYWxsIDAuMnNcIlxuICAgICAgICAgICAgICAgICAgX2hvdmVyPXsoaW5wdXQudHJpbSgpIHx8IChhdHRhY2htZW50cyAmJiBhdHRhY2htZW50cy5sZW5ndGggPiAwKSkgPyB7IG9wYWNpdHk6IDAuOSwgdHJhbnNmb3JtOiBcInNjYWxlKDEuMDUpXCIgfSA6IHt9fVxuICAgICAgICAgICAgICAgICAgY3Vyc29yPXsoaW5wdXQudHJpbSgpIHx8IChhdHRhY2htZW50cyAmJiBhdHRhY2htZW50cy5sZW5ndGggPiAwKSkgPyBcInBvaW50ZXJcIiA6IFwiZGVmYXVsdFwifVxuICAgICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICAgIDxJY29uIGFzPXtGaVNlbmR9IGJveFNpemU9ezR9IC8+XG4gICAgICAgICAgICAgICAgPC9Cb3g+XG4gICAgICAgICAgICAgICl9XG4gICAgICAgICAgICA8L0ZsZXg+XG4gICAgICAgICAgPC9Cb3g+XG4gICAgICAgIDwvTW90aW9uQm94PlxuXG4gICAgICAgIHsvKiBTdWdnZXN0aW9uIEdyaWQgKi99XG4gICAgICAgIDxNb3Rpb25Cb3hcbiAgICAgICAgICBpbml0aWFsPXt7IG9wYWNpdHk6IDAsIHk6IDIwIH19XG4gICAgICAgICAgYW5pbWF0ZT17eyBvcGFjaXR5OiAxLCB5OiAwIH19XG4gICAgICAgICAgdHJhbnNpdGlvbj17eyBkdXJhdGlvbjogMC41LCBkZWxheTogMC4yIH19XG4gICAgICAgICAgdz1cImZ1bGxcIlxuICAgICAgICA+XG4gICAgICAgICAgPFRleHRcbiAgICAgICAgICAgIGZvbnRTaXplPVwiMTFweFwiXG4gICAgICAgICAgICBmb250V2VpZ2h0PVwiNjAwXCJcbiAgICAgICAgICAgIGNvbG9yPVwid2hpdGVBbHBoYS4zMDBcIlxuICAgICAgICAgICAgbWI9ezR9XG4gICAgICAgICAgICB0ZXh0QWxpZ249XCJjZW50ZXJcIlxuICAgICAgICAgICAgdGV4dFRyYW5zZm9ybT1cInVwcGVyY2FzZVwiXG4gICAgICAgICAgICBsZXR0ZXJTcGFjaW5nPVwid2lkZXJcIlxuICAgICAgICAgID5cbiAgICAgICAgICAgIFRyeSBhc2tpbmdcbiAgICAgICAgICA8L1RleHQ+XG4gICAgICAgICAgPEZsZXggZ2FwPXszfSB3cmFwPVwid3JhcFwiIGp1c3RpZnk9XCJjZW50ZXJcIj5cbiAgICAgICAgICAgIHtTVUdHRVNUSU9OUy5tYXAoKGl0ZW0sIGkpID0+IChcbiAgICAgICAgICAgICAgPE1vdGlvbkJveFxuICAgICAgICAgICAgICAgIGtleT17aX1cbiAgICAgICAgICAgICAgICBhcz1cImJ1dHRvblwiXG4gICAgICAgICAgICAgICAgd2hpbGVIb3Zlcj17eyB5OiAtMywgc2NhbGU6IDEuMDIgfX1cbiAgICAgICAgICAgICAgICB3aGlsZVRhcD17eyBzY2FsZTogMC45OCB9fVxuICAgICAgICAgICAgICAgIGRpc3BsYXk9XCJmbGV4XCJcbiAgICAgICAgICAgICAgICBmbGV4RGlyZWN0aW9uPVwiY29sdW1uXCJcbiAgICAgICAgICAgICAgICBhbGlnbkl0ZW1zPVwiY2VudGVyXCJcbiAgICAgICAgICAgICAgICBnYXA9ezJ9XG4gICAgICAgICAgICAgICAgcHk9ezR9XG4gICAgICAgICAgICAgICAgcHg9ezV9XG4gICAgICAgICAgICAgICAgYmc9e2l0ZW0uY29sb3J9XG4gICAgICAgICAgICAgICAgYm9yZGVyPVwiMXB4IHNvbGlkXCJcbiAgICAgICAgICAgICAgICBib3JkZXJDb2xvcj17aXRlbS5ib3JkZXJDb2xvcn1cbiAgICAgICAgICAgICAgICBib3JkZXJSYWRpdXM9XCIyeGxcIlxuICAgICAgICAgICAgICAgIGN1cnNvcj1cInBvaW50ZXJcIlxuICAgICAgICAgICAgICAgIHRyYW5zaXRpb249XCJhbGwgMC4yc1wiXG4gICAgICAgICAgICAgICAgX2hvdmVyPXt7XG4gICAgICAgICAgICAgICAgICBib3hTaGFkb3c6IFwiMCA4cHggMjRweCByZ2JhKDAsMCwwLDAuMilcIixcbiAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHtcbiAgICAgICAgICAgICAgICAgIHNldElucHV0KGl0ZW0udGV4dCk7XG4gICAgICAgICAgICAgICAgICBzZXRUaW1lb3V0KCgpID0+IGhhbmRsZVNlbmQoaXRlbS50ZXh0KSwgMTUwKTtcbiAgICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICAgIG1pblc9XCIxNDBweFwiXG4gICAgICAgICAgICAgICAgZmxleD1cIjFcIlxuICAgICAgICAgICAgICAgIG1heFc9XCIxODBweFwiXG4gICAgICAgICAgICAgID5cbiAgICAgICAgICAgICAgICA8SWNvbiBhcz17aXRlbS5pY29ufSBib3hTaXplPXs1fSBjb2xvcj17aXRlbS5pY29uQ29sb3J9IC8+XG4gICAgICAgICAgICAgICAgPFRleHQgZm9udFNpemU9XCIxM3B4XCIgZm9udFdlaWdodD1cIjUwMFwiIGNvbG9yPVwid2hpdGVBbHBoYS45MDBcIiB0ZXh0QWxpZ249XCJjZW50ZXJcIj5cbiAgICAgICAgICAgICAgICAgIHtpdGVtLnRleHR9XG4gICAgICAgICAgICAgICAgPC9UZXh0PlxuICAgICAgICAgICAgICA8L01vdGlvbkJveD5cbiAgICAgICAgICAgICkpfVxuICAgICAgICAgIDwvRmxleD5cbiAgICAgICAgPC9Nb3Rpb25Cb3g+XG4gICAgICA8L1ZTdGFjaz5cbiAgICA8L0ZsZXg+XG4gICk7XG59O1xuXG5leHBvcnQgZGVmYXVsdCBXZWxjb21lU2NyZWVuO1xuIl0sImZpbGUiOiJDOi9Vc2Vycy9yYXZpay9jbGV2ZXJGb3gtYXBwL2NsaWVudC9zcmMvY29tcG9uZW50cy91aS9zdHVkeXJvb20vdG9vbHMvV2VsY29tZVNjcmVlbi50c3gifQ==

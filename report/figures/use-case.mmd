@@ -1,0 +1,9 @@
+flowchart LR
+  student([Student]) --> UC1((Register / Login))
+  student --> UC2((Start Focus Session))
+  student --> UC3((Manage Tasks))
+  student --> UC4((Manage Notes))
+  student --> UC5((Schedule Events))
+  student --> UC6((Ask Fox AI))
+  student --> UC7((Join Video Session))
+  UC6 --> UC8((Agent Actions))

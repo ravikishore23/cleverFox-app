@@ -13,4 +13,8 @@ export type ProviderChatOutput = {
 
 export interface LlmProvider {
   chat(input: ProviderChatInput): Promise<ProviderChatOutput>;
+  streamChat?(
+    input: ProviderChatInput,
+    onChunk: (text: string) => void
+  ): Promise<ProviderChatOutput>;
 }

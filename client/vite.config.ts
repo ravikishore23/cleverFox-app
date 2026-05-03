@@ -10,4 +10,16 @@ export default defineConfig({
   build: {
     outDir: "dist-react",
   },
+  server: {
+    host: true, // This allows the server to be accessed from other devices on the LAN
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': 'http://127.0.0.1:3001',
+      '/socket.io': {
+        target: 'http://127.0.0.1:3001',
+        ws: true,
+      }
+    }
+  },
 });

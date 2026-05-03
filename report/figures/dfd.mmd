@@ -1,0 +1,11 @@
+flowchart TD
+  student([Student]) -->|prompts, tasks, notes| ui[Study Room UI]
+  ui -->|API requests| api[Backend Services]
+  api -->|CRUD| tasks[(Tasks DB)]
+  api -->|CRUD| notes[(Notes DB)]
+  api -->|CRUD| schedule[(Schedule DB)]
+  api -->|chat request| ai[AI Provider]
+  ai -->|response| api
+  api -->|responses| ui
+  ui -->|video signaling| realtime[Socket.IO Server]
+  realtime -->|offers/answers| peers[Peer Clients]

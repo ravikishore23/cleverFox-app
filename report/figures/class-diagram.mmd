@@ -1,0 +1,39 @@
+classDiagram
+  class Task {
+    +string title
+    +string status
+    +number progress
+    +Date dueAt
+    +Date completedAt
+  }
+  class SubTask {
+    +string title
+    +boolean done
+    +Date createdAt
+    +Date doneAt
+  }
+  class Note {
+    +string title
+    +string category
+    +string[] tags
+    +string content
+    +number wordCount
+  }
+  class ScheduleEvent {
+    +string title
+    +boolean allDay
+    +Date startAt
+    +Date endAt
+  }
+  class Chat {
+    +string title
+    +Message[] messages
+  }
+  class Message {
+    +string role
+    +string content
+    +Date timestamp
+  }
+
+  Task "1" o-- "0..*" SubTask
+  Chat "1" o-- "0..*" Message

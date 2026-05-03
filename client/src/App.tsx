@@ -17,7 +17,7 @@ type User = {
 };
 
 function App() {
-  const [screen, setScreen] = useState<Screen>("landing");
+  const [screen, setScreen] = useState<Screen>("studyroom");
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {

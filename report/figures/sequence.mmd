@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant U as Student
+  participant UI as Study Room UI
+  participant API as Backend /ai/chat
+  participant AI as AI Provider
+  participant DB as MongoDB
+
+  U->>UI: Ask study question
+  UI->>API: POST /ai/chat
+  API->>AI: provider.chat(messages)
+  AI-->>API: AI response
+  API->>DB: Save chat history
+  API-->>UI: Response
+  UI-->>U: Render reply

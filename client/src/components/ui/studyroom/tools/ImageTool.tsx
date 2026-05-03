@@ -14,127 +14,233 @@ import {
 import { useState } from "react";
 import { FiHeart, FiSearch, FiShare2, FiX } from "react-icons/fi";
 
-// Map available images in public/background-images/ to friendly names
-const AVAILABLE_IMAGES = [
-  {
-    id: "moonlight",
-    title: "Moonlight",
-    src: "/background-images/anime-moon-landscape.jpg",
-    category: "anime",
-  },
-  {
-    id: "astronaut",
-    title: "Astronaut",
-    src: "/background-images/astronaut-spaceman-suit-digital-art-purple-background-stars-3840x2160-6424.png",
-    category: "anime",
-  },
-  {
-    id: "samurai",
-    title: "Samurai",
-    src: "/background-images/serene-samurai-amidst-cherry-blossoms-moonlit-lake.jpg",
-    category: "anime",
-  },
-  {
-    id: "anime-aesthetic",
-    title: "Anime Aesthetic",
-    src: "/background-images/wp7199370-anime-aesthetic-computers-wallpapers.jpg",
-    category: "anime",
-  },
-  {
-    id: "vector",
-    title: "Vector",
-    src: "/background-images/wp8773098-vector-graphics-wallpapers.jpg",
-    category: "anime",
-  },
-  {
-    id: "abstract",
-    title: "Abstract",
-    src: "/background-images/CIxvPOYNIysewpii6aVrS.png",
-    category: "anime",
-  },
-  {
-    id: "ultra-nature",
-    title: "Ultra Nature",
-    src: "/background-images/wp10094737-4k-hd-ultra-nature-wallpapers.jpg",
-    category: "real",
-  },
-  {
-    id: "anime-road",
-    title: "Anime Road",
-    src: "/background-images/wp10915948-4k-desktop-anime-road-wallpapers.jpg",
-    category: "anime",
-  },
-  {
-    id: "anime-nature",
-    title: "Anime Nature",
-    src: "/background-images/wp13664571-anime-nature-desktop-4k-wallpapers.png",
-    category: "anime",
-  },
-  {
-    id: "nature-scenery",
-    title: "Nature Scenery",
-    src: "/background-images/wp14320699-nature-anime-pc-wallpapers.jpg",
-    category: "anime",
-  },
-  {
-    id: "scenic-1",
-    title: "Scenic 1",
-    src: "/background-images/uwp4285569.jpeg",
-    category: "real",
-  },
-  {
-    id: "scenic-2",
-    title: "Scenic 2",
-    src: "/background-images/uwp4286591.jpeg",
-    category: "real",
-  },
-  {
-    id: "misty-forest",
-    title: "Misty Forest",
-    src: "/background-images/pexels-joyston-judah-331625-933054.jpg",
-    category: "real",
-  },
-  {
-    id: "mountain-view",
-    title: "Mountain View",
-    src: "/background-images/pexels-mavicair2tw-16822611.jpg",
-    category: "real",
-  },
-  {
-    id: "autumn-road",
-    title: "Autumn Road",
-    src: "/background-images/pexels-pixabay-210186.jpg",
-    category: "real",
-  },
-  {
-    id: "foggy-bridge",
-    title: "Foggy Bridge",
-    src: "/background-images/pexels-snapwire-34950.jpg",
-    category: "real",
-  },
-  {
-    id: "city-night",
-    title: "City Night",
-    src: "/background-images/pexels-therato-1933320.jpg",
-    category: "real",
-  },
-  {
-    id: "coffee-lofi",
-    title: "Coffee Lofi",
-    src: "/background-images/wp13196882-coffee-lofi-wallpapers.png",
-    category: "anime",
-  },
-  {
-    id: "anime-cafe",
-    title: "Anime Cafe",
-    src: "/background-images/wp7575195-anime-cafe-wallpapers.jpg",
-    category: "anime",
-  },
+const AVAILABLE_BACKGROUNDS = [
+  ...[
+    {
+      id: "moonlight",
+      title: "Moonlight",
+      src: "/background-images/anime-moon-landscape.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "astronaut",
+      title: "Astronaut",
+      src: "/background-images/astronaut-spaceman-suit-digital-art-purple-background-stars-3840x2160-6424.png",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "samurai",
+      title: "Samurai",
+      src: "/background-images/serene-samurai-amidst-cherry-blossoms-moonlit-lake.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "anime-aesthetic",
+      title: "Anime Aesthetic",
+      src: "/background-images/wp7199370-anime-aesthetic-computers-wallpapers.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "vector",
+      title: "Vector",
+      src: "/background-images/wp8773098-vector-graphics-wallpapers.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "abstract",
+      title: "Abstract",
+      src: "/background-images/CIxvPOYNIysewpii6aVrS.png",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "ultra-nature",
+      title: "Ultra Nature",
+      src: "/background-images/wp10094737-4k-hd-ultra-nature-wallpapers.jpg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "anime-road",
+      title: "Anime Road",
+      src: "/background-images/wp10915948-4k-desktop-anime-road-wallpapers.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "anime-nature",
+      title: "Anime Nature",
+      src: "/background-images/wp13664571-anime-nature-desktop-4k-wallpapers.png",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "nature-scenery",
+      title: "Nature Scenery",
+      src: "/background-images/wp14320699-nature-anime-pc-wallpapers.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "scenic-1",
+      title: "Scenic 1",
+      src: "/background-images/uwp4285569.jpeg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "scenic-2",
+      title: "Scenic 2",
+      src: "/background-images/uwp4286591.jpeg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "misty-forest",
+      title: "Misty Forest",
+      src: "/background-images/pexels-joyston-judah-331625-933054.jpg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "mountain-view",
+      title: "Mountain View",
+      src: "/background-images/pexels-mavicair2tw-16822611.jpg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "autumn-road",
+      title: "Autumn Road",
+      src: "/background-images/pexels-pixabay-210186.jpg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "foggy-bridge",
+      title: "Foggy Bridge",
+      src: "/background-images/pexels-snapwire-34950.jpg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "city-night",
+      title: "City Night",
+      src: "/background-images/pexels-therato-1933320.jpg",
+      category: "real",
+      type: "image" as const,
+    },
+    {
+      id: "coffee-lofi",
+      title: "Coffee Lofi",
+      src: "/background-images/wp13196882-coffee-lofi-wallpapers.png",
+      category: "anime",
+      type: "image" as const,
+    },
+    {
+      id: "anime-cafe",
+      title: "Anime Cafe",
+      src: "/background-images/wp7575195-anime-cafe-wallpapers.jpg",
+      category: "anime",
+      type: "image" as const,
+    },
+  ],
+  ...[
+    {
+      id: "vid-1",
+      title: "Animated Space M",
+      src: "/background-videos/14244-255658092_medium.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-2",
+      title: "Animated 2",
+      src: "/background-videos/153976-817104245_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-3",
+      title: "Animated 3",
+      src: "/background-videos/159627-819346937_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-4",
+      title: "Animated 4",
+      src: "/background-videos/186405-877993676_medium.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-5",
+      title: "Animated 5",
+      src: "/background-videos/199001-909564581_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-6",
+      title: "Animated 6",
+      src: "/background-videos/215407_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-7",
+      title: "Animated 7",
+      src: "/background-videos/216134_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-8",
+      title: "City Rain",
+      src: "/background-videos/223111_medium.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-9",
+      title: "Animated 9",
+      src: "/background-videos/270507_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-10",
+      title: "Animated 10",
+      src: "/background-videos/297736_medium.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-11",
+      title: "Animated 11",
+      src: "/background-videos/310025_medium.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+    {
+      id: "vid-12",
+      title: "Animated 12",
+      src: "/background-videos/91562-629172467_small.mp4",
+      category: "animated",
+      type: "video" as const,
+    },
+  ],
 ];
 
 type ImageToolProps = {
   onClose?: () => void;
-  onBackgroundSelect?: (src: string) => void;
+  onBackgroundSelect?: (src: string, type: "image" | "video") => void;
   currentBackground?: string;
 };
 
@@ -146,7 +252,9 @@ export default function ImageTool({
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("Images");
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [filter, setFilter] = useState<"all" | "anime" | "real">("all");
+  const [filter, setFilter] = useState<"all" | "anime" | "real" | "animated">(
+    "all",
+  );
 
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -156,11 +264,11 @@ export default function ImageTool({
   };
 
   // Determine current selected image object
-  const selectedImage = AVAILABLE_IMAGES.find(
+  const selectedImage = AVAILABLE_BACKGROUNDS.find(
     (img) => img.src === currentBackground,
   );
 
-  const filteredImages = AVAILABLE_IMAGES.filter((img) => {
+  const filteredImages = AVAILABLE_BACKGROUNDS.filter((img) => {
     // 1. Search Filter
     const matchesSearch = img.title
       .toLowerCase()
@@ -174,6 +282,7 @@ export default function ImageTool({
     // 3. Category Filter
     if (filter === "anime" && img.category !== "anime") return false;
     if (filter === "real" && img.category !== "real") return false;
+    if (filter === "animated" && img.category !== "animated") return false;
 
     return matchesSearch;
   });
@@ -301,6 +410,20 @@ export default function ImageTool({
           >
             Natural
           </Button>
+          <Button
+            size="xs"
+            variant={filter === "animated" ? "solid" : "ghost"}
+            bg={filter === "animated" ? "purple.500" : "transparent"}
+            color={filter === "animated" ? "white" : "whiteAlpha.600"}
+            _hover={{
+              bg: filter === "animated" ? "purple.600" : "whiteAlpha.200",
+            }}
+            borderRadius="8px"
+            px={3}
+            onClick={() => setFilter("animated")}
+          >
+            Animated
+          </Button>
         </HStack>
       </Box>
 
@@ -324,20 +447,36 @@ export default function ImageTool({
                   borderRadius="12px"
                   overflow="hidden"
                   cursor="pointer"
-                  onClick={() => onBackgroundSelect?.(img.src)}
+                  onClick={() => onBackgroundSelect?.(img.src, img.type)}
                   role="group"
                   borderWidth={img.src === currentBackground ? "2px" : "0px"}
                   borderColor="orange.400"
                 >
-                  <Image
-                    src={img.src}
-                    alt={img.title}
-                    objectFit="cover"
-                    w="100%"
-                    h="100px"
-                    transition="transform 0.2s"
-                    _groupHover={{ transform: "scale(1.05)" }}
-                  />
+                  {img.type === "video" ? (
+                    <Box
+                      as="video"
+                      src={img.src}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      objectFit="cover"
+                      w="100%"
+                      h="100px"
+                      transition="transform 0.2s"
+                      _groupHover={{ transform: "scale(1.05)" }}
+                    />
+                  ) : (
+                    <Image
+                      src={img.src}
+                      alt={img.title}
+                      objectFit="cover"
+                      w="100%"
+                      h="100px"
+                      transition="transform 0.2s"
+                      _groupHover={{ transform: "scale(1.05)" }}
+                    />
+                  )}
                   <Box
                     as="button"
                     onClick={(e) => toggleFavorite(img.id, e)}

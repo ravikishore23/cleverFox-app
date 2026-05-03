@@ -1,6 +1,5 @@
 import {
   Box,
-  Button,
   chakra,
   Flex,
   Heading,
@@ -11,20 +10,18 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   FiCalendar,
   FiCheckSquare,
   FiChevronLeft,
   FiClock,
   FiEdit3,
-  FiHome,
   FiImage,
   FiMaximize2,
   FiMinimize2,
   FiMoreHorizontal,
   FiMusic,
-  FiUser,
   FiVideo,
   FiX,
 } from "react-icons/fi";
@@ -58,9 +55,9 @@ type ToolKey =
   | "calendar";
 
 export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
-  const [activeTool, setActiveTool] = useState<ToolKey>("task");
+  const [activeTool, setActiveTool] = useState<ToolKey>("foxai");
   // Keep a history stack. Initial is just "timer".
-  const [history, setHistory] = useState<ToolKey[]>(["timer", "task"]);
+  const [history, setHistory] = useState<ToolKey[]>(["timer", "foxai"]);
   // NOTE: Initial "task" is activeTool, so stack should reflect that if we want back button to work immediately?
   // Actually, if activeTool is "task", history should be ["timer", "task"] if we consider the flow.
   // But let's assume we start at "task" directly. Maybe history is just ["task"].
@@ -138,6 +135,63 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
   );
   const [backgroundVideo, setBackgroundVideo] = useState<string | null>(null);
 
+  const playModeEndAlarm = useCallback(
+    (endedMode: "focus" | "break" | "rest") => {
+      if (typeof window === "undefined") return;
+
+      const AudioCtx =
+        window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+
+      try {
+        const audioCtx = new AudioCtx();
+        const now = audioCtx.currentTime;
+
+        const focusPattern = [880, 1174.66, 880];
+        const breakPattern = [523.25, 659.25, 783.99];
+        const restPattern = [440, 523.25, 659.25];
+
+        const tones =
+          endedMode === "focus"
+            ? focusPattern
+            : endedMode === "break"
+              ? breakPattern
+              : restPattern;
+
+        tones.forEach((frequency, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          const startAt = now + index * 0.2;
+          const endAt = startAt + 0.16;
+
+          osc.type = "sine";
+          osc.frequency.value = frequency;
+
+          gain.gain.setValueAtTime(0.0001, startAt);
+          gain.gain.exponentialRampToValueAtTime(0.18, startAt + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, endAt);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(startAt);
+          osc.stop(endAt);
+        });
+
+        const closeAt = now + tones.length * 0.24;
+        window.setTimeout(
+          () => {
+            void audioCtx.close();
+          },
+          Math.ceil((closeAt - now) * 1000),
+        );
+      } catch {
+        // Ignore audio failures (e.g., browser policy restrictions)
+      }
+    },
+    [],
+  );
+
   // Task state
   // Notes state
 
@@ -172,9 +226,11 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
   useEffect(() => {
     if (!running) return;
     if (secondsLeft > 0) return;
+    const endedMode = mode;
     setRunning(false);
+    playModeEndAlarm(endedMode);
     setMode((prev) => (prev === "focus" ? "break" : "focus"));
-  }, [running, secondsLeft]);
+  }, [running, secondsLeft, mode, playModeEndAlarm]);
 
   const sidebarItems: Array<{
     key: ToolKey;
@@ -188,7 +244,7 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
     { key: "foxai", label: "Fox AI", image: "/ai-logo.png" },
     { key: "media", label: "Media", icon: FiMusic },
     { key: "video", label: "Video", icon: FiVideo },
-    { key: "image", label: "Image", icon: FiImage },
+    { key: "image", label: "Backgrounds", icon: FiImage },
     { key: "calendar", label: "Calendar", icon: FiCalendar },
   ];
 
@@ -309,21 +365,27 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
       >
         {activeTool === "task" && <TaskTool />}
 
-        {activeTool === "foxai" && <FoxAiTool />}
+        {activeTool === "foxai" && (
+          <FoxAiTool onOpenNotesTool={() => navigateTo("notes")} />
+        )}
 
-        {(activeTool === "video" || activeTool === "image") && (
-          <Box p={5}>
-            <Stack gap={2}>
-              <Text fontSize="sm" color="whiteAlpha.900">
-                {sidebarItems.find((i) => i.key === activeTool)?.label ??
-                  "Tool"}{" "}
-                tool coming next.
-              </Text>
-              <Text fontSize="sm" color="whiteAlpha.700">
-                For now we’re focusing on Music first.
-              </Text>
-            </Stack>
-          </Box>
+        {activeTool === "video" && (
+          <VideoTool onClose={() => navigateTo("timer")} />
+        )}
+
+        {activeTool === "image" && (
+          <ImageTool
+            onClose={() => navigateTo("timer")}
+            currentBackground={backgroundVideo || backgroundImage}
+            onBackgroundSelect={(src, type) => {
+              if (type === "video") {
+                setBackgroundVideo(src);
+              } else {
+                setBackgroundImage(src);
+                setBackgroundVideo(null);
+              }
+            }}
+          />
         )}
       </Box>
     </Box>
@@ -356,69 +418,6 @@ export default function StudyRoomPage({ user, onExit }: StudyRoomPageProps) {
         />
       )}
       <Box position="absolute" inset={0} bg="blackAlpha.300" zIndex={1} />
-
-      {/* Top-right control bar */}
-      <Flex
-        position="absolute"
-        top={{ base: 4, md: 6 }}
-        right={{ base: 4, md: 8 }}
-        zIndex={2}
-        align="center"
-        gap={2}
-        bg="whiteAlpha.900"
-        borderRadius="12px"
-        px={2}
-        py={2}
-        boxShadow="0 12px 30px rgba(0,0,0,0.25)"
-      >
-        <IconButton
-          aria-label="Video"
-          variant="ghost"
-          size="sm"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <Icon as={FiVideo} color="gray.800" />
-        </IconButton>
-        <Button
-          size="sm"
-          borderRadius="10px"
-          bg="white"
-          borderWidth="1px"
-          borderColor="blackAlpha.200"
-          boxShadow="sm"
-          _hover={{ bg: "gray.50" }}
-        >
-          Invite
-        </Button>
-
-        <Box w="1px" h="22px" bg="blackAlpha.200" mx={1} />
-
-        <IconButton
-          aria-label="Home"
-          variant="ghost"
-          size="sm"
-          _hover={{ bg: "blackAlpha.100" }}
-          onClick={onExit}
-        >
-          <Icon as={FiHome} color="gray.800" />
-        </IconButton>
-        <IconButton
-          aria-label="User"
-          variant="ghost"
-          size="sm"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <Icon as={FiUser} color="gray.800" />
-        </IconButton>
-        <IconButton
-          aria-label="Fullscreen"
-          variant="ghost"
-          size="sm"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <Icon as={FiMaximize2} color="gray.800" />
-        </IconButton>
-      </Flex>
 
       {/* Left tool sidebar */}
       <Flex

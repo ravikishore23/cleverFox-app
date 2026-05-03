@@ -1,0 +1,13 @@
+flowchart LR
+  user([Student]) --> ui[Study Room UI\nReact + Chakra]
+  ui --> electron[Electron Shell]
+  ui --> api[Backend API\nExpress]
+  api --> mongo[(MongoDB)]
+  api --> provider[AI Provider\nGemini / OpenAI / Ollama]
+  api --> router[Intent Router]
+  router --> chat[/AI Chat/]
+  router --> agent[/Local Agent/]
+  agent --> tools[MCP Tools\nFile/Run/Notes]
+  tools --> workspace[(Agent Workspace)]
+  api --> realtime[Socket.IO\nVideo Signaling]
+  realtime --> peers[Peer Clients]

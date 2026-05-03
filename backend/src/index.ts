@@ -1,13 +1,18 @@
 import express from "express";
 import cors from "cors";
+import { createServer } from "node:http";
 import { env } from "./config/env.js";
 import { healthRouter } from "./routes/health.js";
 import { spotifyRouter } from "./routes/spotify.js";
 import { aiRouter } from "./routes/ai/chat.js";
+import { agentRouter } from "./routes/ai/agent.js";
+import { routeRouter } from "./routes/ai/route.js";
 import { tasksRouter } from "./routes/tasks.js";
 import { notesRouter } from "./routes/notes.js";
 import { scheduleRouter } from "./routes/schedule.js";
 import { errorHandler } from "./middleware/error.js";
+import { connectMongo } from "./db/mongo.js";
+import { attachVideoSessionServer } from "./realtime/videoSessionServer.js";
 
 const app = express();
 
@@ -53,12 +58,22 @@ app.use(express.json());
 app.use(healthRouter);
 app.use(spotifyRouter);
 app.use(aiRouter);
+// Mount agent routes only when explicitly enabled.
+if (env.localAgentEnabled) {
+  app.use(agentRouter);
+}
+// Intent routing (classify whether to route to chat or agent)
+app.use(routeRouter);
 app.use(tasksRouter);
 app.use(notesRouter);
 app.use(scheduleRouter);
 
 app.use(errorHandler);
 
-app.listen(env.port, () => {
-  console.log(`Backend listening on http://localhost:${env.port}`);
+const server = createServer(app);
+attachVideoSessionServer(server);
+
+server.listen(env.port, "0.0.0.0", () => {
+  console.log(`Backend listening on http://0.0.0.0:${env.port}`);
+  void connectMongo();
 });

@@ -2,91 +2,17 @@ import {
   Box,
   Button,
   Grid,
-  GridItem,
   HStack,
-  Icon,
   IconButton,
   Input,
-  Text,
   Flex,
+  Text,
+  VStack,
+  Badge,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { FiHeart, FiSearch, FiShare2, FiX, FiPlay } from "react-icons/fi";
-
-const AVAILABLE_VIDEOS = [
-  {
-    id: "video-1",
-    title: "Nature Stream",
-    src: "/background-videos/14244-255658092_medium.mp4",
-    category: "real",
-  },
-  {
-    id: "video-2",
-    title: "Cozy fireplace",
-    src: "/background-videos/153976-817104245_small.mp4",
-    category: "real",
-  },
-  {
-    id: "video-3",
-    title: "Rainy Window",
-    src: "/background-videos/159627-819346937_small.mp4",
-    category: "real",
-  },
-  {
-    id: "video-4",
-    title: "Forest Walk",
-    src: "/background-videos/186405-877993676_medium.mp4",
-    category: "real",
-  },
-  {
-    id: "video-5",
-    title: "Ocean Waves",
-    src: "/background-videos/199001-909564581_small.mp4",
-    category: "real",
-  },
-  {
-    id: "video-6",
-    title: "Abstract Flow",
-    src: "/background-videos/215407_small.mp4",
-    category: "anime",
-  },
-  {
-    id: "video-7",
-    title: "City Lights",
-    src: "/background-videos/216134_small.mp4",
-    category: "real",
-  },
-  {
-    id: "video-8",
-    title: "Mountain Cloud",
-    src: "/background-videos/223111_medium.mp4",
-    category: "real",
-  },
-  {
-    id: "video-9",
-    title: "Coffee Shop",
-    src: "/background-videos/270507_small.mp4",
-    category: "real",
-  },
-  {
-    id: "video-10",
-    title: "Night Sky",
-    src: "/background-videos/297736_medium.mp4",
-    category: "real",
-  },
-  {
-    id: "video-11",
-    title: "Cyberpunk City",
-    src: "/background-videos/310025_medium.mp4",
-    category: "anime",
-  },
-  {
-    id: "video-12",
-    title: "Snowfall",
-    src: "/background-videos/91562-629172467_small.mp4",
-    category: "real",
-  },
-];
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiCopy, FiHome, FiUser } from "react-icons/fi";
+import { io, type Socket } from "socket.io-client";
 
 type VideoToolProps = {
   onClose?: () => void;
@@ -94,314 +20,814 @@ type VideoToolProps = {
   currentVideo?: string | null;
 };
 
+type PeerInfo = {
+  socketId: string;
+  name: string;
+};
+
+function resolveApiBase(): string {
+  const configured = import.meta.env.VITE_API_BASE_URL;
+  if (configured) return configured;
+
+  if (typeof window === "undefined") {
+    return "http://localhost:3001";
+  }
+
+  const { protocol, hostname } = window.location;
+  
+  // If running in Electron or local file system, default to localhost
+  if (protocol === "file:" || !hostname) {
+    return "http://localhost:3001";
+  }
+
+  // If we are on the web, use the same origin, so the proxy or tunnel can handle it
+  return "";
+}
+
+const API_BASE = resolveApiBase();
+
+const RTC_CONFIG: RTCConfiguration = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+  ],
+};
+
 export default function VideoTool({
   onClose,
-  onVideoSelect,
-  currentVideo,
+  onVideoSelect: _onVideoSelect,
+  currentVideo: _currentVideo,
 }: VideoToolProps) {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("Videos");
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [filter, setFilter] = useState<"all" | "real" | "anime">("all");
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const peerConnectionsRef = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const selfIdRef = useRef<string>("");
 
-  const toggleFavorite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id],
+  const [name, setName] = useState("Ravi");
+  const [sessionInput, setSessionInput] = useState("");
+  const [sessionId, setSessionId] = useState("");
+  const [status, setStatus] = useState("Not connected");
+  const [peers, setPeers] = useState<PeerInfo[]>([]);
+  const [remoteStreams, setRemoteStreams] = useState<
+    Array<{ socketId: string; stream: MediaStream; name: string }>
+  >([]);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const isInSession = Boolean(sessionId);
+
+  const peersById = useMemo(() => {
+    const map = new Map<string, PeerInfo>();
+    for (const p of peers) map.set(p.socketId, p);
+    return map;
+  }, [peers]);
+
+  const clearRemote = useCallback((socketId: string) => {
+    setRemoteStreams((prev) => prev.filter((p) => p.socketId !== socketId));
+    setPeers((prev) => prev.filter((p) => p.socketId !== socketId));
+  }, []);
+
+  const closePeer = useCallback(
+    (socketId: string) => {
+      const pc = peerConnectionsRef.current.get(socketId);
+      if (pc) {
+        pc.close();
+        peerConnectionsRef.current.delete(socketId);
+      }
+      clearRemote(socketId);
+    },
+    [clearRemote],
+  );
+
+  const createPeerConnection = useCallback(
+    (remoteSocketId: string, remoteName: string) => {
+      const existing = peerConnectionsRef.current.get(remoteSocketId);
+      if (existing) return existing;
+
+      const pc = new RTCPeerConnection(RTC_CONFIG);
+
+      const localStream = localStreamRef.current;
+      if (localStream) {
+        localStream.getTracks().forEach((track) => {
+          pc.addTrack(track, localStream);
+        });
+      }
+
+      pc.onicecandidate = (event) => {
+        if (!event.candidate) return;
+        socketRef.current?.emit("video:signal-ice", {
+          to: remoteSocketId,
+          candidate: event.candidate.toJSON(),
+        });
+      };
+
+      pc.ontrack = (event) => {
+        const stream = event.streams[0];
+        if (!stream) return;
+        setRemoteStreams((prev) => {
+          const existingItem = prev.find((p) => p.socketId === remoteSocketId);
+          if (existingItem) {
+            return prev.map((item) =>
+              item.socketId === remoteSocketId
+                ? { ...item, stream, name: remoteName }
+                : item,
+            );
+          }
+          return [
+            ...prev,
+            { socketId: remoteSocketId, stream, name: remoteName },
+          ];
+        });
+      };
+
+      pc.onconnectionstatechange = () => {
+        const state = pc.connectionState;
+        if (
+          state === "failed" ||
+          state === "closed" ||
+          state === "disconnected"
+        ) {
+          closePeer(remoteSocketId);
+        }
+      };
+
+      peerConnectionsRef.current.set(remoteSocketId, pc);
+      return pc;
+    },
+    [closePeer],
+  );
+
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const mediaPromiseRef = useRef<Promise<MediaStream> | null>(null);
+
+  const startLocalMedia = useCallback(async () => {
+    if (localStreamRef.current) return localStreamRef.current;
+    if (mediaPromiseRef.current) return mediaPromiseRef.current;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const msg = "Camera/Mic blocked! Browsers require HTTPS to use the camera. If on phone, either use ngrok/HTTPS or enable the insecure origin flag in Chrome.";
+      console.warn(msg);
+      setStatus("Camera Access Blocked (Requires HTTPS or Localhost)");
+      return Promise.reject(new Error(msg));
+    }
+
+    mediaPromiseRef.current = (async () => {
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      } catch (err: any) {
+        console.warn("Could not get both video/audio, trying video only...", err);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setMicOn(false); // Auto-disable mic UI since it failed
+        } catch (err2: any) {
+          console.warn("Could not get video, trying audio only...", err2);
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          setCamOn(false); // Auto-disable cam UI since it failed
+        }
+      }
+      
+      localStreamRef.current = stream;
+      setLocalStream(stream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+      }
+      return stream;
+    })().catch(err => {
+      mediaPromiseRef.current = null;
+      console.error("Total camera/mic access error:", err);
+      throw err;
+    });
+
+    return mediaPromiseRef.current;
+  }, []);
+
+  // We use a callback ref to guarantee streams attach the exact moment the <video> mounts
+  const videoRefCallback = useCallback((node: HTMLVideoElement | null) => {
+    localVideoRef.current = node;
+    if (node && localStream) {
+      node.srcObject = localStream;
+    }
+  }, [localStream]);
+
+  // Start media immediately on mount so Lobby shows preview
+  useEffect(() => {
+    let isMounted = true;
+    
+    startLocalMedia().catch(e => {
+      if (isMounted) setStatus("Warning: Camera/Mic not found or permission denied.");
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [startLocalMedia]);
+
+  const leaveSession = useCallback(() => {
+    socketRef.current?.emit("video:leave-session");
+
+    peerConnectionsRef.current.forEach((pc) => pc.close());
+    peerConnectionsRef.current.clear();
+    setPeers([]);
+    setRemoteStreams([]);
+    setSessionId("");
+    setStatus("Left session");
+  }, []);
+
+  const disconnectAll = useCallback(() => {
+    leaveSession();
+    socketRef.current?.disconnect();
+    socketRef.current = null;
+
+    const stream = localStreamRef.current;
+    if (stream) {
+      stream.getTracks().forEach((t) => t.stop());
+      localStreamRef.current = null;
+      setLocalStream(null);
+    }
+  }, [leaveSession]);
+
+  const ensureSocket = useCallback(async () => {
+    if (socketRef.current?.connected) return socketRef.current;
+    
+    // We try to start local media, but if it fails we still want to connect to socket
+    // so we don't completely break the session creation fallback.
+    try {
+      const stream = await startLocalMedia();
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+    } catch (e) {
+      setStatus("Warning: Camera/Mic not found. You can still join.");
+    }
+
+    return new Promise<Socket>((resolve, reject) => {
+      const socket = io(API_BASE, {
+        transports: ["websocket", "polling"],
+      });
+      socketRef.current = socket;
+
+      const timeout = setTimeout(() => {
+        setStatus("Failed to connect to signaling server.");
+        reject(new Error("Socket connection timeout"));
+      }, 5000);
+
+      socket.on("connect", () => {
+        clearTimeout(timeout);
+        setStatus("Connected to signaling server");
+        resolve(socket);
+      });
+
+      socket.on("connect_error", (error) => {
+        clearTimeout(timeout);
+        setStatus(`Connection error: ${error.message}`);
+        reject(error);
+      });
+
+      socket.on("video:error", ({ message }: { message: string }) => {
+        setStatus(message || "Session error");
+      });
+
+      socket.on("video:participant-joined", ({ socketId, name }: PeerInfo) => {
+        if (socketId === selfIdRef.current) return;
+        setPeers((prev) => {
+          if (prev.some((p) => p.socketId === socketId)) return prev;
+          return [...prev, { socketId, name }];
+        });
+        setStatus(`${name} joined the session`);
+      });
+
+      socket.on(
+        "video:participant-left",
+        ({ socketId }: { socketId: string }) => {
+          closePeer(socketId);
+          setStatus("A participant left");
+        },
+      );
+
+      socket.on(
+        "video:signal-offer",
+        async ({
+          from,
+          sdp,
+        }: {
+          from: string;
+          sdp: RTCSessionDescriptionInit;
+        }) => {
+          const remoteName = peersById.get(from)?.name || "Friend";
+          const pc = createPeerConnection(from, remoteName);
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          socket.emit("video:signal-answer", { to: from, sdp: answer });
+        },
+      );
+
+      socket.on(
+        "video:signal-answer",
+        async ({
+          from,
+          sdp,
+        }: {
+          from: string;
+          sdp: RTCSessionDescriptionInit;
+        }) => {
+          const pc = peerConnectionsRef.current.get(from);
+          if (!pc) return;
+          await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        },
+      );
+
+      socket.on(
+        "video:signal-ice",
+        async ({
+          from,
+          candidate,
+        }: {
+          from: string;
+          candidate: RTCIceCandidateInit;
+        }) => {
+          const pc = peerConnectionsRef.current.get(from);
+          if (!pc) return;
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch {
+            // Ignore transient ICE ordering issues
+          }
+        },
+      );
+    });
+  }, [closePeer, createPeerConnection, peersById, startLocalMedia]);
+
+  const emitWithAck = (socket: Socket, event: string, payload: any) => {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("Network timeout: Signaling server did not respond."));
+      }, 5000);
+
+      socket.emit(event, payload, (response: any) => {
+        clearTimeout(timeout);
+        if (response?.ok) {
+          resolve(response.data);
+        } else {
+          reject(new Error(response?.error || 'Unknown error'));
+        }
+      });
+    });
+  };
+
+  const handleCreateSession = useCallback(async () => {
+    setBusy(true);
+    setStatus("Connecting...");
+    try {
+      const socket = await ensureSocket();
+      const data: any = await emitWithAck(socket, "video:create-session", { name: name.trim() || "Guest" });
+      // The old ensureSocket also listens to video:session-joined, but let's be explicitly safe and set it here too if needed.
+      // Even if session-joined listener fires, it's good to ensure it here!
+      if (data && data.sessionId) {
+          selfIdRef.current = data.selfId;
+          setSessionId(data.sessionId);
+          setSessionInput(data.sessionId);
+          setStatus(`Joined session ${data.sessionId}`);
+          setPeers(data.participants || []);
+      }
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Failed to create session",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }, [ensureSocket, name]);
+
+  const handleJoinSession = useCallback(async () => {
+    const session = sessionInput.trim().toUpperCase();
+    if (!session) {
+      setStatus("Enter session code");
+      return;
+    }
+
+    setBusy(true);
+    setStatus("Connecting...");
+    try {
+      const socket = await ensureSocket();
+      const data: any = await emitWithAck(socket, "video:join-session", {
+        sessionId: session,
+        name: name.trim() || "Guest",
+      });
+      if (data && data.sessionId) {
+          selfIdRef.current = data.selfId;
+          setSessionId(data.sessionId);
+          setSessionInput(data.sessionId);
+          setStatus(`Joined session ${data.sessionId}`);
+          setPeers(data.participants || []);
+          
+          for (const remote of data.participants || []) {
+            const pc = createPeerConnection(remote.socketId, remote.name);
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            socket.emit("video:signal-offer", {
+              to: remote.socketId,
+              sdp: offer,
+            });
+          }
+      }
+    } catch (error) {
+      setStatus(
+        error instanceof Error ? error.message : "Failed to join session",
+      );
+    } finally {
+      setBusy(false);
+    }
+  }, [ensureSocket, name, sessionInput, createPeerConnection]);
+
+  const copySessionCode = useCallback(async () => {
+    if (!sessionId) return;
+    try {
+      await navigator.clipboard.writeText(sessionId);
+      setStatus("Session code copied");
+    } catch {
+      setStatus("Failed to copy code");
+    }
+  }, [sessionId]);
+
+  const toggleMic = useCallback(() => {
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const next = !micOn;
+    stream.getAudioTracks().forEach((track) => {
+      track.enabled = next;
+    });
+    setMicOn(next);
+  }, [micOn]);
+
+  const toggleCamera = useCallback(() => {
+    const stream = localStreamRef.current;
+    if (!stream) return;
+    const next = !camOn;
+    stream.getVideoTracks().forEach((track) => {
+      track.enabled = next;
+    });
+    setCamOn(next);
+  }, [camOn]);
+
+  useEffect(() => {
+    return () => {
+      disconnectAll();
+    };
+  }, [disconnectAll]);
+
+  const RemoteVideoTile = ({
+    stream,
+    label,
+  }: {
+    stream: MediaStream;
+    label: string;
+  }) => {
+    const ref = useRef<HTMLVideoElement | null>(null);
+    useEffect(() => {
+      if (ref.current) {
+        ref.current.srcObject = stream;
+      }
+    }, [stream]);
+
+    return (
+      <Box borderRadius={isExpanded ? "24px" : "16px"} overflow="hidden" bg="#1A1B1E" position="relative" h="100%" minH={isExpanded ? "300px" : "180px"}>
+        <video
+          ref={ref}
+          autoPlay
+          playsInline
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <Box
+          position="absolute"
+          bottom={3}
+          left={3}
+          bg="rgba(0, 0, 0, 0.6)"
+          backdropFilter="blur(8px)"
+          px={3}
+          py={1}
+          borderRadius="8px"
+        >
+          <Text fontSize="xs" fontWeight="600" color="white">
+            {label}
+          </Text>
+        </Box>
+      </Box>
     );
   };
 
-  const selectedVideo = AVAILABLE_VIDEOS.find(
-    (vid) => vid.src === currentVideo,
-  );
-
-  const filteredVideos = AVAILABLE_VIDEOS.filter((vid) => {
-    const matchesSearch = vid.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    if (activeTab === "Favorites" && !favorites.includes(vid.id)) {
-      return false;
-    }
-
-    if (filter === "real" && vid.category !== "real") return false;
-    if (filter === "anime" && vid.category !== "anime") return false;
-
-    return matchesSearch;
-  });
-
   return (
     <Box
-      w={{ base: "320px", md: "380px" }}
-      h={{ base: "500px", md: "600px" }}
-      bg="#1A1B1E"
-      borderRadius="24px"
-      borderWidth="1px"
+      w={isExpanded ? "100vw" : { base: "320px", md: "720px" }}
+      h={isExpanded ? "100vh" : { base: "520px", md: "540px" }}
+      position={isExpanded ? "fixed" : "static"}
+      top={isExpanded ? 0 : "auto"}
+      left={isExpanded ? 0 : "auto"}
+      zIndex={isExpanded ? 9999 : "auto"}
+      bg="#0C0C0E" // Deep dark background
+      borderRadius={isExpanded ? "0px" : "24px"}
+      borderWidth={isExpanded ? "0px" : "1px"}
       borderColor="whiteAlpha.100"
-      boxShadow="0 20px 50px rgba(0,0,0,0.5)"
+      boxShadow="0 24px 60px rgba(0,0,0,0.6)"
       overflow="hidden"
       display="flex"
       flexDirection="column"
       color="white"
+      transition="all 0.3s ease"
     >
-      {/* Header Tabs */}
-      <Flex align="center" justify="space-between" px={4} pt={4} pb={2}>
-        <HStack gap={4}>
-          <Text
-            fontSize="md"
-            fontWeight={activeTab === "Videos" ? "700" : "500"}
-            color={activeTab === "Videos" ? "white" : "whiteAlpha.600"}
-            cursor="pointer"
-            onClick={() => setActiveTab("Videos")}
-            borderBottom={activeTab === "Videos" ? "2px solid white" : "none"}
-            pb={1}
-          >
-            Videos
-          </Text>
-          <Text
-            fontSize="md"
-            fontWeight={activeTab === "Favorites" ? "700" : "500"}
-            color={activeTab === "Favorites" ? "white" : "whiteAlpha.600"}
-            cursor="pointer"
-            onClick={() => setActiveTab("Favorites")}
-            borderBottom={
-              activeTab === "Favorites" ? "2px solid white" : "none"
-            }
-            pb={1}
-          >
-            Favorites
-          </Text>
+      {/* Header */}
+      <Flex align="center" justify="space-between" px={6} py={4} borderBottomWidth="1px" borderColor="whiteAlpha.100" bg="#121214">
+        <HStack gap={3}>
+          <Box p={2} bg="blue.500" borderRadius="10px">
+            <FiVideo size={16} color="white" />
+          </Box>
+          <VStack align="start" gap={0}>
+            <Text fontSize="md" fontWeight="600" lineHeight="1.2">
+              Study Room Video
+            </Text>
+            {isInSession ? (
+              <HStack gap={2}>
+                <Text fontSize="xs" color="green.400" fontWeight="500">
+                  Live
+                </Text>
+                <Text fontSize="xs" color="whiteAlpha.500">•</Text>
+                <Text fontSize="xs" color="whiteAlpha.600">
+                  {peers.length + 1} participant{peers.length + 1 !== 1 && 's'}
+                </Text>
+              </HStack>
+            ) : (
+              <Text fontSize="xs" color="whiteAlpha.500">
+                Not connected
+              </Text>
+            )}
+          </VStack>
         </HStack>
-
-        {onClose && (
+        <HStack gap={1}>
           <IconButton
             size="sm"
             variant="ghost"
-            color="whiteAlpha.600"
-            _hover={{ color: "white", bg: "whiteAlpha.100" }}
-            aria-label="Close"
-            onClick={onClose}
+            color="whiteAlpha.500"
+            _hover={{ color: "white", bg: "whiteAlpha.200" }}
+            aria-label="Full Screen"
+            onClick={() => setIsExpanded(!isExpanded)}
           >
-            <FiX size={18} />
+            {isExpanded ? <FiMinimize2 size={18} /> : <FiMaximize2 size={18} />}
           </IconButton>
-        )}
+          {onClose && (
+            <IconButton
+              size="sm"
+              variant="ghost"
+              color="whiteAlpha.500"
+              _hover={{ color: "white", bg: "whiteAlpha.200" }}
+              aria-label="Close"
+              onClick={onClose}
+            >
+              <FiX size={20} />
+            </IconButton>
+          )}
+        </HStack>
       </Flex>
 
-      {/* Search Bar */}
-      <Box px={4} py={2}>
-        <Box position="relative">
-          <Box
-            position="absolute"
-            left={3}
-            top="50%"
-            transform="translateY(-50%)"
-            pointerEvents="none"
-            zIndex={2}
-          >
-            <FiSearch color="gray" />
-          </Box>
-          <Input
-            placeholder="Search videos"
-            bg="#2C2E33"
-            border="none"
-            borderRadius="10px"
-            pl={10}
-            _focus={{ ring: 1, ringColor: "whiteAlpha.400" }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </Box>
-      </Box>
+      {/* Main Content Area */}
+      <Box flex="1" overflowY="auto" p={6} className="no-scrollbar">
+        {!isInSession ? (
+          /* LOBBY VIEW */
+          <Flex direction="column" gap={6} h="100%">
+            <Grid templateColumns={{ base: "1fr", md: "1fr 1fr" }} gap={6} flex="1">
+              
+              {/* Left Column: Local Preview */}
+              <Box position="relative" borderRadius="20px" overflow="hidden" bg="#1A1B1E" h="240px">
+                <video
+                  ref={videoRefCallback}
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+                {!camOn && (
+                  <Flex position="absolute" inset={0} align="center" justify="center" bg="#1A1B1E">
+                    <FiVideoOff size={40} color="gray" />
+                  </Flex>
+                )}
+                
+                {/* Media controls overlaid on preview */}
+                <HStack position="absolute" bottom={4} left="50%" transform="translateX(-50%)" gap={3}>
+                  <IconButton
+                    aria-label="Toggle Mic"
+                    rounded="full"
+                    size="md"
+                    bg={micOn ? "rgba(255,255,255,0.2)" : "red.500"}
+                    color="white"
+                    backdropFilter="blur(10px)"
+                    _hover={{ bg: micOn ? "rgba(255,255,255,0.3)" : "red.600" }}
+                    onClick={toggleMic}
+                  >
+                    {micOn ? <FiMic /> : <FiMicOff />}
+                  </IconButton>
+                  <IconButton
+                    aria-label="Toggle Camera"
+                    rounded="full"
+                    size="md"
+                    bg={camOn ? "rgba(255,255,255,0.2)" : "red.500"}
+                    color="white"
+                    backdropFilter="blur(10px)"
+                    _hover={{ bg: camOn ? "rgba(255,255,255,0.3)" : "red.600" }}
+                    onClick={toggleCamera}
+                  >
+                    {camOn ? <FiVideo /> : <FiVideoOff />}
+                  </IconButton>
+                </HStack>
+              </Box>
 
-      {/* Filter Chips */}
-      <Box px={4} py={2} overflowX="auto" className="no-scrollbar">
-        <HStack gap={2}>
-          <Button
-            size="xs"
-            variant={filter === "all" ? "solid" : "ghost"}
-            bg={filter === "all" ? "whiteAlpha.300" : "transparent"}
-            color={filter === "all" ? "white" : "whiteAlpha.600"}
-            _hover={{ bg: "whiteAlpha.200" }}
-            borderRadius="8px"
-            px={3}
-            onClick={() => setFilter("all")}
-          >
-            All
-          </Button>
-          <Button
-            size="xs"
-            variant={filter === "anime" ? "solid" : "ghost"}
-            bg={filter === "anime" ? "pink.500" : "transparent"}
-            color={filter === "anime" ? "white" : "whiteAlpha.600"}
-            _hover={{ bg: filter === "anime" ? "pink.600" : "whiteAlpha.200" }}
-            borderRadius="8px"
-            px={3}
-            onClick={() => setFilter("anime")}
-          >
-            Anime
-          </Button>
-          <Button
-            size="xs"
-            variant={filter === "real" ? "solid" : "ghost"}
-            bg={filter === "real" ? "green.500" : "transparent"}
-            color={filter === "real" ? "white" : "whiteAlpha.600"}
-            _hover={{ bg: filter === "real" ? "green.600" : "whiteAlpha.200" }}
-            borderRadius="8px"
-            px={3}
-            onClick={() => setFilter("real")}
-          >
-            Real
-          </Button>
-        </HStack>
-      </Box>
+              {/* Right Column: Controls */}
+              <Flex direction="column" justify="center" gap={5}>
+                <VStack align="stretch" gap={3}>
+                  <Text fontSize="sm" fontWeight="600" color="whiteAlpha.800">Your Name</Text>
+                  <Input
+                    placeholder="Enter display name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    bg="#1A1B1E"
+                    border="1px solid"
+                    borderColor="whiteAlpha.100"
+                    borderRadius="12px"
+                    _focus={{ borderColor: "blue.400", bg: "#23242A" }}
+                    h="44px"
+                  />
+                </VStack>
 
-      {/* Videos Grid */}
-      <Box flex="1" overflowY="auto" px={4} py={2}>
-        <Text fontSize="sm" fontWeight="700" mb={3}>
-          {activeTab === "Favorites" ? "Your Favorites" : "Featured Videos"}
-        </Text>
-        {filteredVideos.length === 0 ? (
-          <Flex align="center" justify="center" h="200px" direction="column">
-            <Text color="whiteAlpha.500" fontSize="sm">
-              No videos found
-            </Text>
+                <Button
+                  h="48px"
+                  borderRadius="12px"
+                  bg="blue.500"
+                  color="white"
+                  fontWeight="600"
+                  _hover={{ bg: "blue.400" }}
+                  onClick={() => void handleCreateSession()}
+                  disabled={busy}
+                  w="100%"
+                >
+                  Start New Session
+                </Button>
+
+                <HStack gap={3} align="center">
+                  <Box flex="1" h="1px" bg="whiteAlpha.100" />
+                  <Text fontSize="xs" color="whiteAlpha.500" fontWeight="600">OR</Text>
+                  <Box flex="1" h="1px" bg="whiteAlpha.100" />
+                </HStack>
+
+                <VStack align="stretch" gap={3}>
+                  <HStack gap={2}>
+                    <Input
+                      placeholder="Session Code"
+                      value={sessionInput}
+                      onChange={(e) => setSessionInput(e.target.value.toUpperCase())}
+                      bg="#1A1B1E"
+                      border="1px solid"
+                      borderColor="whiteAlpha.100"
+                      borderRadius="12px"
+                      _focus={{ borderColor: "blue.400", bg: "#23242A" }}
+                      h="48px"
+                      textTransform="uppercase"
+                      flex="1"
+                    />
+                    <Button
+                      h="48px"
+                      px={6}
+                      borderRadius="12px"
+                      bg="whiteAlpha.100"
+                      color="white"
+                      _hover={{ bg: "whiteAlpha.200" }}
+                      onClick={() => void handleJoinSession()}
+                      disabled={busy || !sessionInput}
+                    >
+                      Join
+                    </Button>
+                  </HStack>
+                </VStack>
+
+                {status !== "Not connected" && status !== "Left session" && (
+                  <Text fontSize="xs" color="red.400" textAlign="center">{status}</Text>
+                )}
+              </Flex>
+            </Grid>
           </Flex>
         ) : (
-          <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-            {filteredVideos.map((vid) => (
-              <GridItem key={vid.id}>
-                <Box
-                  position="relative"
-                  borderRadius="12px"
-                  overflow="hidden"
-                  cursor="pointer"
-                  onClick={() => onVideoSelect?.(vid.src)}
-                  role="group"
-                  borderWidth={vid.src === currentVideo ? "2px" : "0px"}
-                  borderColor="orange.400"
-                  bg="black"
-                  h="100px"
-                >
-                  <video
-                    src={vid.src}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                    muted
-                    loop
-                    onMouseOver={(e) => e.currentTarget.play()}
-                    onMouseOut={(e) => {
-                      e.currentTarget.pause();
-                      e.currentTarget.currentTime = 0;
-                    }}
-                  />
-
-                  {/* Play Icon Overlay */}
-                  <Box
-                    position="absolute"
-                    top="50%"
-                    left="50%"
-                    transform="translate(-50%, -50%)"
-                    bg="blackAlpha.600"
-                    borderRadius="full"
-                    p={2}
-                    opacity={0.8}
-                    _groupHover={{ opacity: 0 }}
-                    transition="opacity 0.2s"
+          /* IN-SESSION VIEW */
+          <Flex direction="column" h="100%" gap={4}>
+            {/* Top Bar with Code */}
+            <Flex justify="space-between" align="center" bg="#1A1B1E" p={3} borderRadius="16px" borderWidth="1px" borderColor="whiteAlpha.100">
+              <HStack gap={3}>
+                <Box px={3} py={1.5} bg="#23242A" borderRadius="8px" display="flex" alignItems="center" gap={2}>
+                  <Text fontSize="sm" fontFamily="monospace" fontWeight="bold" letterSpacing="1px">
+                    {sessionId}
+                  </Text>
+                  <IconButton 
+                    size="xs" 
+                    variant="ghost" 
+                    aria-label="Copy session code" 
+                    onClick={() => void copySessionCode()}
+                    color="whiteAlpha.600"
+                    _hover={{ color: "white", bg: "whiteAlpha.200" }}
                   >
-                    <Icon as={FiPlay} color="white" w={4} h={4} />
-                  </Box>
-
-                  <Box
-                    as="button"
-                    onClick={(e) => toggleFavorite(vid.id, e)}
-                    position="absolute"
-                    top={2}
-                    right={2}
-                    bg="blackAlpha.400"
-                    borderRadius="full"
-                    p={1}
-                    _hover={{ bg: "blackAlpha.600" }}
-                    transition="all 0.2s"
-                    zIndex={2}
-                  >
-                    <Icon
-                      as={FiHeart}
-                      color={
-                        favorites.includes(vid.id)
-                          ? "red.400"
-                          : "whiteAlpha.800"
-                      }
-                      fill={
-                        favorites.includes(vid.id) ? "currentColor" : "none"
-                      }
-                      w={3}
-                      h={3}
-                    />
-                  </Box>
-                  <Box
-                    position="absolute"
-                    bottom={0}
-                    left={0}
-                    w="100%"
-                    bg="linear-gradient(to top, rgba(0,0,0,0.8), transparent)"
-                    p={2}
-                    pt={4}
-                    zIndex={1}
-                  >
-                    <Text fontSize="xs" fontWeight="600" color="white">
-                      {vid.title}
-                    </Text>
-                  </Box>
+                    <FiCopy size={12} />
+                  </IconButton>
                 </Box>
-              </GridItem>
-            ))}
-          </Grid>
+              </HStack>
+              <Text fontSize="sm" color="whiteAlpha.600">
+                Connection: <Text as="span" color="green.400">{status.includes("error") ? "Error" : "Stable"}</Text>
+              </Text>
+            </Flex>
+
+            {/* Video Grid */}
+            <Grid 
+              templateColumns={remoteStreams.length === 0 ? "1fr" : { base: "1fr", md: "1fr 1fr" }} 
+              gap={4} 
+              flex="1"
+            >
+              {/* Local Participant */}
+              <Box borderRadius={isExpanded ? "24px" : "16px"} overflow="hidden" bg="#1A1B1E" position="relative" h="100%" minH={isExpanded ? "300px" : "180px"}>
+                <video
+                  ref={videoRefCallback}
+                  autoPlay
+                  muted
+                  playsInline
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+                {!camOn && (
+                  <Flex position="absolute" inset={0} align="center" justify="center" bg="#1A1B1E">
+                    <FiVideoOff size={40} color="gray" />
+                  </Flex>
+                )}
+                <Box position="absolute" bottom={3} left={3} bg="rgba(0, 0, 0, 0.6)" backdropFilter="blur(8px)" px={3} py={1} borderRadius="8px">
+                  <Text fontSize="xs" fontWeight="600" color="white">
+                    You {name ? `(${name})` : ""}
+                  </Text>
+                </Box>
+                {!micOn && (
+                  <Box position="absolute" top={3} right={3} bg="red.500" p={1.5} borderRadius="full">
+                    <FiMicOff size={14} color="white" />
+                  </Box>
+                )}
+              </Box>
+
+              {/* Remote Participants */}
+              {remoteStreams.map((remote) => (
+                <RemoteVideoTile
+                  key={remote.socketId}
+                  stream={remote.stream}
+                  label={remote.name || "Friend"}
+                />
+              ))}
+            </Grid>
+            
+            {/* Bottom Controls Bar */}
+            <Flex justify="center" mt="auto" pt={2}>
+              <HStack gap={4} bg="#1A1B1E" p={2} borderRadius="24px" borderWidth="1px" borderColor="whiteAlpha.100">
+                <IconButton
+                  aria-label="Toggle Mic"
+                  rounded="full"
+                  size="lg"
+                  bg={micOn ? "whiteAlpha.100" : "red.500"}
+                  color="white"
+                  _hover={{ bg: micOn ? "whiteAlpha.200" : "red.600" }}
+                  onClick={toggleMic}
+                >
+                  {micOn ? <FiMic size={20} /> : <FiMicOff size={20} />}
+                </IconButton>
+                
+                <IconButton
+                  aria-label="Toggle Camera"
+                  rounded="full"
+                  size="lg"
+                  bg={camOn ? "whiteAlpha.100" : "red.500"}
+                  color="white"
+                  _hover={{ bg: camOn ? "whiteAlpha.200" : "red.600" }}
+                  onClick={toggleCamera}
+                >
+                  {camOn ? <FiVideo size={20} /> : <FiVideoOff size={20} />}
+                </IconButton>
+
+                <Box w="1px" h="24px" bg="whiteAlpha.200" />
+
+                <Button
+                  rounded="full"
+                  h="48px"
+                  px={6}
+                  bg="red.500"
+                  color="white"
+                  fontWeight="600"
+                  _hover={{ bg: "red.600" }}
+                  onClick={() => leaveSession()}
+                >
+                  Leave Call
+                </Button>
+              </HStack>
+            </Flex>
+          </Flex>
         )}
-      </Box>
-
-      {/* Footer Info */}
-      <Box
-        borderTopWidth="1px"
-        borderTopColor="whiteAlpha.100"
-        bg="#25262B"
-        p={4}
-      >
-        <Flex justify="space-between" align="center">
-          <HStack gap={3}>
-            <Box>
-              <Text fontSize="sm" fontWeight="700">
-                {selectedVideo?.title ?? "Custom Video"}
-              </Text>
-              <Text fontSize="xs" color="whiteAlpha.600">
-                @Community
-              </Text>
-            </Box>
-          </HStack>
-
-          <HStack gap={2}>
-            <IconButton
-              size="sm"
-              variant="ghost"
-              aria-label="Share"
-              color="whiteAlpha.700"
-              _hover={{ color: "white", bg: "whiteAlpha.100" }}
-            >
-              <FiShare2 />
-            </IconButton>
-            <IconButton
-              size="sm"
-              variant="ghost"
-              aria-label="Like"
-              color="whiteAlpha.700"
-              _hover={{ color: "white", bg: "whiteAlpha.100" }}
-            >
-              <FiHeart />
-            </IconButton>
-          </HStack>
-        </Flex>
       </Box>
     </Box>
   );

@@ -542,7 +542,45 @@ export default function NotesTool({ onClose }: NotesToolProps) {
       const doc = new jsPDF({ unit: "pt", format: "a4" });
       noteToPdf(doc, readerNote);
       const day = new Date().toISOString().slice(0, 10);
-      doc.save(`${safeFileName(readerNote.title)}-${day}.pdf`);
+      const suggestedName = `${safeFileName(readerNote.title)}-${day}.pdf`;
+
+      if ("showSaveFilePicker" in window) {
+        const picker = (window as Window & {
+          showSaveFilePicker?: (options: {
+            suggestedName?: string;
+            types?: Array<{
+              description?: string;
+              accept: Record<string, string[]>;
+            }>;
+            excludeAcceptAllOption?: boolean;
+          }) => Promise<{
+            createWritable: () => Promise<{
+              write: (data: Blob) => Promise<void>;
+              close: () => Promise<void>;
+            }>;
+          }>;
+        }).showSaveFilePicker;
+
+        if (picker) {
+          const handle = await picker({
+            suggestedName,
+            types: [
+              {
+                description: "PDF Document",
+                accept: { "application/pdf": [".pdf"] },
+              },
+            ],
+            excludeAcceptAllOption: false,
+          });
+          const writable = await handle.createWritable();
+          const blob = doc.output("blob") as Blob;
+          await writable.write(blob);
+          await writable.close();
+          return;
+        }
+      }
+
+      doc.save(suggestedName);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to export PDF");
     } finally {
