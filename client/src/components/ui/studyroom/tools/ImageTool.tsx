@@ -453,18 +453,19 @@ export default function ImageTool({
                   borderColor="orange.400"
                 >
                   {img.type === "video" ? (
-                    <Box
-                      as="video"
+                    <video
                       src={img.src}
                       autoPlay
                       loop
                       muted
                       playsInline
-                      objectFit="cover"
-                      w="100%"
-                      h="100px"
-                      transition="transform 0.2s"
-                      _groupHover={{ transform: "scale(1.05)" }}
+                      style={{
+                        objectFit: "cover",
+                        width: "100%",
+                        height: "100px",
+                        transition: "transform 0.2s",
+                        display: "block",
+                      }}
                     />
                   ) : (
                     <Image
@@ -479,7 +480,7 @@ export default function ImageTool({
                   )}
                   <Box
                     as="button"
-                    onClick={(e) => toggleFavorite(img.id, e)}
+                    onClick={(e: React.MouseEvent) => toggleFavorite(img.id, e)}
                     position="absolute"
                     top={2}
                     right={2}

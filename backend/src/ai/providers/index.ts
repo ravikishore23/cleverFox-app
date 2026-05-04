@@ -1,32 +1,40 @@
 import type { LlmProvider } from "./provider.js";
-import { MockProvider } from "./mock.js";
-import { OpenAiProvider } from "./openai.js";
-import { GeminiProvider } from "./gemini.js";
 import { OllamaProvider } from "./ollama.js";
 
+/**
+ * Maps a friendly model key (sent from the frontend) to the actual
+ * Ollama model id defined in the environment.
+ */
+function resolveOllamaModel(modelKey: string | undefined): string {
+  const env = process.env;
+  // Map friendly names → env-defined model ids
+  const map: Record<string, string> = {
+    qwen: env.OLLAMA_MODEL_QWEN ?? "qwen3.5:397b-cloud",
+    gpt: env.OLLAMA_MODEL_GPT ?? "gpt-oss:120b-cloud",
+    deepseek: env.OLLAMA_MODEL_DEEPSEEK ?? "deepseek-v3.1:671b-cloud",
+  };
+
+  if (modelKey && map[modelKey.toLowerCase()]) {
+    return map[modelKey.toLowerCase()];
+  }
+
+  // Fall back to exact value (already a full model id) or the env default
+  return modelKey || env.OLLAMA_MODEL || "deepseek-v3.1:671b-cloud";
+}
+
 export function makeProvider(env: NodeJS.ProcessEnv): LlmProvider {
-  const provider = (env.AI_PROVIDER ?? "gemini").toLowerCase();
+  const baseUrl = env.OLLAMA_BASE_URL ?? "https://ollama.com/v1";
+  const apiKey = env.OLLAMA_API_KEY;
+  // Default model from env; the route may override per-request via body.model
+  const defaultModel = resolveOllamaModel(env.OLLAMA_MODEL);
 
-  if (provider === "ollama") {
-    const baseUrl = env.OLLAMA_BASE_URL ?? "http://localhost:11434";
-    const apiKey = env.OLLAMA_API_KEY; // optional for local, required for hosted
-    const model = env.OLLAMA_MODEL; // e.g. llama3.2:1b
-    return new OllamaProvider(baseUrl, apiKey, model);
-  }
+  return new OllamaProvider(baseUrl, apiKey, defaultModel);
+}
 
-  if (provider === "gemini") {
-    const apiKey = env.GEMINI_API_KEY;
-    if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
-    return new GeminiProvider(apiKey);
-  }
-
-  if (provider === "openai") {
-    const apiKey = env.OPENAI_API_KEY;
-    if (!apiKey) throw new Error("Missing OPENAI_API_KEY");
-    const baseUrl = env.OPENAI_BASE_URL || "https://api.openai.com/v1";
-    const defaultModel = env.OPENAI_MODEL;
-    return new OpenAiProvider(apiKey, baseUrl, defaultModel);
-  }
-
-  return new MockProvider();
+/**
+ * Convenience helper: resolve a per-request model key to its Ollama model id.
+ * Call this in routes where `body.model` may be a friendly name.
+ */
+export function resolveModel(modelKey: string | undefined): string {
+  return resolveOllamaModel(modelKey);
 }

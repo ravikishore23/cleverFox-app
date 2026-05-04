@@ -1,7 +1,7 @@
 import { Router } from "express";
 import fs from "fs/promises";
 import path from "path";
-import { makeProvider } from "../../ai/providers/index.js";
+import { makeProvider, resolveModel } from "../../ai/providers/index.js";
 import type { ChatRequest, ChatResponse } from "../../ai/types/chat.js";
 import { buildStudyRoomSystemPrompt } from "../../ai/agents/studyroomAgent.js";
 import { Chat } from "../../models/Chat.js";
@@ -191,7 +191,7 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
 
       try {
         const out = await provider.streamChat(
-          { messages: providerMessages, model: body.model },
+          { messages: providerMessages, model: resolveModel(body.model) },
           (chunk) => {
             res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
           },
@@ -255,7 +255,7 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
 
     const out = await provider.chat({
       messages: providerMessages,
-      model: body.model,
+      model: resolveModel(body.model),
     });
 
     // 2. Persist to MongoDB only if connected

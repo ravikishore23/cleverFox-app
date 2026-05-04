@@ -79,9 +79,11 @@ type NotesToolProps = {
   onClose?: () => void;
 };
 
-const API_BASE =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "http://localhost:3001";
+const CONFIGURED_API_BASE = (
+  import.meta.env.VITE_API_BASE_URL as string | undefined
+)?.trim();
+
+const API_BASE = CONFIGURED_API_BASE || "http://localhost:3001";
 
 async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
@@ -335,8 +337,16 @@ export default function NotesTool({ onClose }: NotesToolProps) {
 
       // Guard against out-of-order async responses overwriting newer state.
       if (seq !== refreshSeq.current) return;
-      setNotes(notesData.notes);
-      setStats(statsData.stats);
+      setNotes(notesData?.notes ?? []);
+      setStats(
+        statsData?.stats ?? {
+          total: 0,
+          pinned: 0,
+          favorites: 0,
+          categories: 0,
+          words: 0,
+        },
+      );
     } catch (e) {
       if (seq === refreshSeq.current) {
         setError(e instanceof Error ? e.message : "Failed to load notes");
@@ -545,21 +555,23 @@ export default function NotesTool({ onClose }: NotesToolProps) {
       const suggestedName = `${safeFileName(readerNote.title)}-${day}.pdf`;
 
       if ("showSaveFilePicker" in window) {
-        const picker = (window as Window & {
-          showSaveFilePicker?: (options: {
-            suggestedName?: string;
-            types?: Array<{
-              description?: string;
-              accept: Record<string, string[]>;
+        const picker = (
+          window as Window & {
+            showSaveFilePicker?: (options: {
+              suggestedName?: string;
+              types?: Array<{
+                description?: string;
+                accept: Record<string, string[]>;
+              }>;
+              excludeAcceptAllOption?: boolean;
+            }) => Promise<{
+              createWritable: () => Promise<{
+                write: (data: Blob) => Promise<void>;
+                close: () => Promise<void>;
+              }>;
             }>;
-            excludeAcceptAllOption?: boolean;
-          }) => Promise<{
-            createWritable: () => Promise<{
-              write: (data: Blob) => Promise<void>;
-              close: () => Promise<void>;
-            }>;
-          }>;
-        }).showSaveFilePicker;
+          }
+        ).showSaveFilePicker;
 
         if (picker) {
           const handle = await picker({

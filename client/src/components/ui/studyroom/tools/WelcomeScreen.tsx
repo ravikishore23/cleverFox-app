@@ -17,7 +17,9 @@ import {
 } from "react-icons/fi";
 
 const AI_LOGO = "/ai-logo.png";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MotionBox = motion.create(Box as any);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MotionFlex = motion.create(Flex as any);
 
 type WelcomeScreenProps = {
@@ -501,7 +503,6 @@ const WelcomeScreen = ({
                 borderColor={item.borderColor}
                 borderRadius="2xl"
                 cursor="pointer"
-                transition="all 0.2s"
                 _hover={{
                   boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
                 }}

@@ -8,11 +8,23 @@ import {
   Flex,
   Text,
   VStack,
-  Badge,
+
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiCopy, FiHome, FiUser } from "react-icons/fi";
+import { FiMic, FiMicOff, FiVideo, FiVideoOff, FiX, FiMaximize2, FiMinimize2, FiCopy } from "react-icons/fi";
 import { io, type Socket } from "socket.io-client";
+
+type SessionData = {
+  sessionId: string;
+  selfId: string;
+  participants: PeerInfo[];
+};
+
+type AckResponse = {
+  ok: boolean;
+  data?: SessionData;
+  error?: string;
+};
 
 type VideoToolProps = {
   onClose?: () => void;
@@ -178,15 +190,15 @@ export default function VideoTool({
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.warn("Could not get both video/audio, trying video only...", err);
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          setMicOn(false); // Auto-disable mic UI since it failed
-        } catch (err2: any) {
+          setMicOn(false);
+        } catch (err2: unknown) {
           console.warn("Could not get video, trying audio only...", err2);
           stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          setCamOn(false); // Auto-disable cam UI since it failed
+          setCamOn(false);
         }
       }
       
@@ -217,7 +229,7 @@ export default function VideoTool({
   useEffect(() => {
     let isMounted = true;
     
-    startLocalMedia().catch(e => {
+    startLocalMedia().catch(() => {
       if (isMounted) setStatus("Warning: Camera/Mic not found or permission denied.");
     });
 
@@ -258,7 +270,7 @@ export default function VideoTool({
     try {
       const stream = await startLocalMedia();
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-    } catch (e) {
+    } catch {
       setStatus("Warning: Camera/Mic not found. You can still join.");
     }
 
@@ -360,15 +372,15 @@ export default function VideoTool({
     });
   }, [closePeer, createPeerConnection, peersById, startLocalMedia]);
 
-  const emitWithAck = (socket: Socket, event: string, payload: any) => {
+  const emitWithAck = (socket: Socket, event: string, payload: Record<string, unknown>): Promise<SessionData> => {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("Network timeout: Signaling server did not respond."));
       }, 5000);
 
-      socket.emit(event, payload, (response: any) => {
+      socket.emit(event, payload, (response: AckResponse) => {
         clearTimeout(timeout);
-        if (response?.ok) {
+        if (response?.ok && response.data) {
           resolve(response.data);
         } else {
           reject(new Error(response?.error || 'Unknown error'));
@@ -382,7 +394,7 @@ export default function VideoTool({
     setStatus("Connecting...");
     try {
       const socket = await ensureSocket();
-      const data: any = await emitWithAck(socket, "video:create-session", { name: name.trim() || "Guest" });
+      const data = await emitWithAck(socket, "video:create-session", { name: name.trim() || "Guest" });
       // The old ensureSocket also listens to video:session-joined, but let's be explicitly safe and set it here too if needed.
       // Even if session-joined listener fires, it's good to ensure it here!
       if (data && data.sessionId) {
@@ -412,7 +424,7 @@ export default function VideoTool({
     setStatus("Connecting...");
     try {
       const socket = await ensureSocket();
-      const data: any = await emitWithAck(socket, "video:join-session", {
+      const data = await emitWithAck(socket, "video:join-session", {
         sessionId: session,
         name: name.trim() || "Guest",
       });

@@ -262,7 +262,11 @@ export default function MusicTool({
       return { x: 24, y: 96 };
     }
   });
-  const [spotifyToken, setSpotifyToken] = useState<SpotifyToken | null>(null);
+  const [spotifyToken, setSpotifyToken] = useState<SpotifyToken | null>(() => {
+    // Read token once on mount — avoids calling setState inside a useEffect
+    const t = readToken();
+    return t ?? null;
+  });
   const [spotifyUser, setSpotifyUser] = useState<SpotifyMe | null>(null);
   const [statusMessage, setStatusMessage] = useState<StatusMessage | null>(
     null,
@@ -368,16 +372,11 @@ export default function MusicTool({
     }
   }, [youTubeEmbedUrl]);
 
-  useEffect(() => {
-    // Load token from localStorage after OAuth redirect (handled in App.tsx).
-    const token = readToken();
-    if (!token) return;
-    setSpotifyToken(token);
-  }, []);
 
   useEffect(() => {
     if (!spotifyToken) return;
     if (isTokenExpired(spotifyToken)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatusMessage({
         kind: "error",
         text: "Spotify session expired. Please connect again.",

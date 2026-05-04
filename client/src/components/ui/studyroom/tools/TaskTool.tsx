@@ -64,9 +64,11 @@ type TaskDto = {
   updatedAt: string;
 };
 
-const API_BASE =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  "http://localhost:3001";
+const CONFIGURED_API_BASE = (
+  import.meta.env.VITE_API_BASE_URL as string | undefined
+)?.trim();
+
+const API_BASE = CONFIGURED_API_BASE || "http://localhost:3001";
 
 async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
