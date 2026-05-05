@@ -107,8 +107,10 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
     // 1. Generate AI response (always works, even without MongoDB)
     const provider = makeProvider(process.env);
 
-    // Check if web search is requested or automatically needed
+    // Check if web search is requested (manual toggle only)
     let searchContext = "";
+    /*
+    // Automatic web search using scraping is disabled per user request
     const lastUserMsg = [...body.messages]
       .reverse()
       .find((m) => m.role === "user");
@@ -118,46 +120,31 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
     if (!isWebSearchNeeded && lastUserMsg) {
       const content = lastUserMsg.content.toLowerCase();
       const triggers = [
-        "today",
-        "news",
-        "recent",
-        "latest",
-        "current",
-        "search for",
-        "look up",
-        "who won",
-        "what is the weather",
-        "2024",
-        "2025",
-        "2026",
-        "now",
-        "update",
-        "price",
-        "happen",
+        "today", "news", "recent", "latest", "current", "search for", "look up",
+        "who won", "what is the weather", "2024", "2025", "2026", "now", "update", "price", "happen"
       ];
       isWebSearchNeeded = triggers.some((trigger) => content.includes(trigger));
     }
 
-    if (isWebSearchNeeded) {
-      if (lastUserMsg) {
-        try {
-          const results = await performWebSearch(lastUserMsg.content);
-          if (results.length > 0) {
-            searchContext =
-              `\n\nREAL-TIME WEB SEARCH RESULTS for "${lastUserMsg.content}":\n` +
-              results
-                .map(
-                  (r) =>
-                    `Title: ${r.title}\nLink: ${r.link}\nSnippet: ${r.snippet}`,
-                )
-                .join("\n\n") +
-              `\n\nSince your internal knowledge ends in 2024, use these search results to provide the best, most up-to-date answer about current events. Address the user's query thoughtfully. Cite URLs inline if useful.`;
-          }
-        } catch (e) {
-          console.error("Web search failed silently", e);
+    if (isWebSearchNeeded && lastUserMsg) {
+      try {
+        const results = await performWebSearch(lastUserMsg.content);
+        if (results.length > 0) {
+          searchContext =
+            `\n\nREAL-TIME WEB SEARCH RESULTS for "${lastUserMsg.content}":\n` +
+            results
+              .map(
+                (r) =>
+                  `Title: ${r.title}\nLink: ${r.link}\nSnippet: ${r.snippet}`,
+              )
+              .join("\n\n") +
+            `\n\nSince your internal knowledge ends in 2024, use these search results to provide the best, most up-to-date answer about current events. Address the user's query thoughtfully. Cite URLs inline if useful.`;
         }
+      } catch (e) {
+        console.error("Web search failed silently", e);
       }
     }
+    */
 
     // Sanitize messages for provider
     const providerMessages = [
@@ -234,7 +221,7 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
           }
         }
         res.write(
-          `data: ${JSON.stringify({ done: true, chatId, provider: out.provider })}\n\n`,
+          `data: ${JSON.stringify({ done: true, chatId, provider: out.provider, outputText: out.outputText })}\n\n`,
         );
         res.end();
       } catch (err) {
@@ -347,6 +334,7 @@ aiRouter.post("/ai/agent-chat", async (req, res) => {
       body.messages,
       vaultPath,
       env.codeWorkspacePath,
+      body.model,
     );
 
     const safeAutoTools = new Set([
@@ -366,11 +354,124 @@ aiRouter.post("/ai/agent-chat", async (req, res) => {
       (a) => !safeAutoTools.has(a.tool),
     );
 
+    const isStream = req.query.stream === "true";
+    const provider = makeProvider(process.env);
+
+    if (isStream && provider.streamChat) {
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+      res.flushHeaders();
+
+      // 1. Stream initial analysis
+      res.write(`data: ${JSON.stringify({ chunk: proposal.response })}\n\n`);
+
+      let finalSynthesizedText = proposal.response;
+
+      if (autoActions.length > 0) {
+        const autoResults = await executeActions(autoActions);
+        const toolContext = autoResults
+          .map(
+            (r) =>
+              `Tool: ${r.tool}\nSuccess: ${r.success ? "yes" : "no"}\nResult:\n${r.result}`,
+          )
+          .join("\n\n---\n\n");
+
+        try {
+          const synthesis = await provider.streamChat(
+            {
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are Fox AI with agent abilities. Use the tool results to answer naturally like a chatbot. " +
+                    "For note lists, show clean headings/titles only and NEVER include database IDs or raw object IDs. " +
+                    "If a note was opened, summarize key points and include the note title as a heading.",
+                },
+                ...body.messages,
+                {
+                  role: "user",
+                  content:
+                    `Tool results are below. Create the final assistant response for the user based on these results:\n\n${toolContext}` +
+                    (pendingActions.length
+                      ? "\n\nAlso mention briefly that additional permission is needed for the remaining actions."
+                      : ""),
+                },
+              ],
+              model: resolveModel(body.model),
+            },
+            (chunk) => {
+              res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+            },
+          );
+
+          finalSynthesizedText = synthesis.outputText;
+        } catch (err) {
+          res.write(
+            `data: ${JSON.stringify({ error: err instanceof Error ? err.message : "Unknown stream error" })}\n\n`,
+          );
+          res.end();
+          return;
+        }
+      }
+
+      // Persist full chat
+      let chatId: string | undefined;
+      if (isMongoConnected()) {
+        try {
+          let chatDoc;
+          if (body.chatId) chatDoc = await Chat.findById(body.chatId);
+          if (!chatDoc) {
+            const userMessageContent =
+              body.messages[body.messages.length - 1].content;
+            chatDoc = new Chat({
+              title:
+                userMessageContent.slice(0, 40) +
+                (userMessageContent.length > 40 ? "..." : ""),
+              messages: [],
+            });
+          }
+          const lastUserMsg = body.messages[body.messages.length - 1];
+          if (lastUserMsg.role === "user") {
+            chatDoc.messages.push({
+              role: "user",
+              content: lastUserMsg.content,
+              timestamp: new Date(),
+            });
+          }
+          chatDoc.messages.push({
+            role: "assistant",
+            content: finalSynthesizedText,
+            timestamp: new Date(),
+          });
+          await chatDoc.save();
+          chatId = chatDoc._id.toString();
+        } catch (dbErr) {
+          console.warn(
+            "⚠ Failed to persist agent stream chat to MongoDB:",
+            dbErr,
+          );
+        }
+      }
+
+      res.write(
+        `data: ${JSON.stringify({
+          done: true,
+          analysis: proposal.analysis,
+          actions: pendingActions,
+          provider: "agent",
+          chatId,
+        })}\n\n`,
+      );
+      res.end();
+      return;
+    }
+
+    // Fallback for non-streaming clients
     let outputText = proposal.response;
 
     if (autoActions.length > 0) {
       const autoResults = await executeActions(autoActions);
-      const provider = makeProvider(process.env);
       const toolContext = autoResults
         .map(
           (r) =>
@@ -397,6 +498,7 @@ aiRouter.post("/ai/agent-chat", async (req, res) => {
                 : ""),
           },
         ],
+        model: resolveModel(body.model),
       });
 
       outputText = synthesis.outputText;

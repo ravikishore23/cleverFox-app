@@ -209,13 +209,23 @@ export default function MusicTool({
   const pendingYouTubePlayRef = useRef(false);
   const youTubeIframeId = "cleverfox-youtube-embed";
   const [selectedId, setSelectedId] = useState<string>(() => {
-    try { const raw = window.localStorage.getItem("cf.music.selectedId"); if (raw) return raw; } catch { /* ignore */ }
+    try {
+      const raw = window.localStorage.getItem("cf.music.selectedId");
+      if (raw) return raw;
+    } catch {
+      /* ignore */
+    }
     return BUILTIN_TRACKS[0]?.id;
   });
   const [playing, setPlaying] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [savedUrl, setSavedUrl] = useState<string | null>(() => {
-    try { const raw = window.localStorage.getItem("cf.music.savedUrl"); if (raw) return raw; } catch { /* ignore */ }
+    try {
+      const raw = window.localStorage.getItem("cf.music.savedUrl");
+      if (raw) return raw;
+    } catch {
+      /* ignore */
+    }
     return null;
   });
   const [playbackSource, setPlaybackSource] = useState<
@@ -223,30 +233,52 @@ export default function MusicTool({
   >(() => {
     try {
       const raw = window.localStorage.getItem("cf.music.playbackSource");
-      if (raw === "builtin" || raw === "spotify" || raw === "youtube") return raw;
-    } catch { /* ignore */ }
+      if (raw === "builtin" || raw === "spotify" || raw === "youtube")
+        return raw;
+    } catch {
+      /* ignore */
+    }
     return "builtin";
   });
   const [expanded, setExpanded] = useState(false);
   const [bgColor, setBgColor] = useState(() => {
-    try { const raw = window.localStorage.getItem("cf.music.bgColor"); if (raw) return raw; } catch { /* ignore */ }
+    try {
+      const raw = window.localStorage.getItem("cf.music.bgColor");
+      if (raw) return raw;
+    } catch {
+      /* ignore */
+    }
     return BG_COLORS[0];
   });
 
   useEffect(() => {
-    try { window.localStorage.setItem("cf.music.selectedId", selectedId); } catch { /* ignore */ }
+    try {
+      window.localStorage.setItem("cf.music.selectedId", selectedId);
+    } catch {
+      /* ignore */
+    }
   }, [selectedId]);
   useEffect(() => {
     try {
       if (savedUrl) window.localStorage.setItem("cf.music.savedUrl", savedUrl);
       else window.localStorage.removeItem("cf.music.savedUrl");
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, [savedUrl]);
   useEffect(() => {
-    try { window.localStorage.setItem("cf.music.playbackSource", playbackSource); } catch { /* ignore */ }
+    try {
+      window.localStorage.setItem("cf.music.playbackSource", playbackSource);
+    } catch {
+      /* ignore */
+    }
   }, [playbackSource]);
   useEffect(() => {
-    try { window.localStorage.setItem("cf.music.bgColor", bgColor); } catch { /* ignore */ }
+    try {
+      window.localStorage.setItem("cf.music.bgColor", bgColor);
+    } catch {
+      /* ignore */
+    }
   }, [bgColor]);
   const [pos, setPos] = useState<WidgetPos>(() => {
     if (typeof window === "undefined") return { x: 24, y: 96 };
@@ -307,17 +339,21 @@ export default function MusicTool({
 
     const start = { x: e.clientX, y: e.clientY };
     const base = pos;
+    let newPos = base;
 
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - start.x;
       const dy = ev.clientY - start.y;
-      setPos(clampToViewport({ x: base.x + dx, y: base.y + dy }));
+      newPos = clampToViewport({ x: base.x + dx, y: base.y + dy });
+      if (widgetRef.current) {
+        widgetRef.current.style.transform = `translate3d(${newPos.x}px, ${newPos.y}px, 0)`;
+      }
     };
 
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      setPos((p) => clampToViewport(p));
+      setPos(newPos);
     };
 
     window.addEventListener("pointermove", onMove);
@@ -371,7 +407,6 @@ export default function MusicTool({
       return youTubeEmbedUrl;
     }
   }, [youTubeEmbedUrl]);
-
 
   useEffect(() => {
     if (!spotifyToken) return;
@@ -640,12 +675,16 @@ export default function MusicTool({
     <Box
       ref={widgetRef}
       position="fixed"
-      left={`${pos.x}px`}
-      top={`${pos.y}px`}
       zIndex={zIndex}
       w={{ base: "calc(100vw - 24px)", sm: "380px" }}
       maxW="420px"
       onPointerDown={() => onFocus?.()}
+      style={{
+        left: 0,
+        top: 0,
+        transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
+        willChange: "transform",
+      }}
     >
       {/* Purple Spotify-like floating widget */}
       <Box

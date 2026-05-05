@@ -19,133 +19,133 @@ const AVAILABLE_BACKGROUNDS = [
     {
       id: "moonlight",
       title: "Moonlight",
-      src: "/background-images/anime-moon-landscape.jpg",
+      src: "./background-images/anime-moon-landscape.jpg",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "astronaut",
       title: "Astronaut",
-      src: "/background-images/astronaut-spaceman-suit-digital-art-purple-background-stars-3840x2160-6424.png",
+      src: "./background-images/astronaut-spaceman-suit-digital-art-purple-background-stars-3840x2160-6424.png",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "samurai",
       title: "Samurai",
-      src: "/background-images/serene-samurai-amidst-cherry-blossoms-moonlit-lake.jpg",
+      src: "./background-images/serene-samurai-amidst-cherry-blossoms-moonlit-lake.jpg",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "anime-aesthetic",
       title: "Anime Aesthetic",
-      src: "/background-images/wp7199370-anime-aesthetic-computers-wallpapers.jpg",
+      src: "./background-images/wp7199370-anime-aesthetic-computers-wallpapers.jpg",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "vector",
       title: "Vector",
-      src: "/background-images/wp8773098-vector-graphics-wallpapers.jpg",
+      src: "./background-images/wp8773098-vector-graphics-wallpapers.jpg",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "abstract",
       title: "Abstract",
-      src: "/background-images/CIxvPOYNIysewpii6aVrS.png",
+      src: "./background-images/CIxvPOYNIysewpii6aVrS.png",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "ultra-nature",
       title: "Ultra Nature",
-      src: "/background-images/wp10094737-4k-hd-ultra-nature-wallpapers.jpg",
+      src: "./background-images/wp10094737-4k-hd-ultra-nature-wallpapers.jpg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "anime-road",
       title: "Anime Road",
-      src: "/background-images/wp10915948-4k-desktop-anime-road-wallpapers.jpg",
+      src: "./background-images/wp10915948-4k-desktop-anime-road-wallpapers.jpg",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "anime-nature",
       title: "Anime Nature",
-      src: "/background-images/wp13664571-anime-nature-desktop-4k-wallpapers.png",
+      src: "./background-images/wp13664571-anime-nature-desktop-4k-wallpapers.png",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "nature-scenery",
       title: "Nature Scenery",
-      src: "/background-images/wp14320699-nature-anime-pc-wallpapers.jpg",
+      src: "./background-images/wp14320699-nature-anime-pc-wallpapers.jpg",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "scenic-1",
       title: "Scenic 1",
-      src: "/background-images/uwp4285569.jpeg",
+      src: "./background-images/uwp4285569.jpeg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "scenic-2",
       title: "Scenic 2",
-      src: "/background-images/uwp4286591.jpeg",
+      src: "./background-images/uwp4286591.jpeg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "misty-forest",
       title: "Misty Forest",
-      src: "/background-images/pexels-joyston-judah-331625-933054.jpg",
+      src: "./background-images/pexels-joyston-judah-331625-933054.jpg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "mountain-view",
       title: "Mountain View",
-      src: "/background-images/pexels-mavicair2tw-16822611.jpg",
+      src: "./background-images/pexels-mavicair2tw-16822611.jpg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "autumn-road",
       title: "Autumn Road",
-      src: "/background-images/pexels-pixabay-210186.jpg",
+      src: "./background-images/pexels-pixabay-210186.jpg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "foggy-bridge",
       title: "Foggy Bridge",
-      src: "/background-images/pexels-snapwire-34950.jpg",
+      src: "./background-images/pexels-snapwire-34950.jpg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "city-night",
       title: "City Night",
-      src: "/background-images/pexels-therato-1933320.jpg",
+      src: "./background-images/pexels-therato-1933320.jpg",
       category: "real",
       type: "image" as const,
     },
     {
       id: "coffee-lofi",
       title: "Coffee Lofi",
-      src: "/background-images/wp13196882-coffee-lofi-wallpapers.png",
+      src: "./background-images/wp13196882-coffee-lofi-wallpapers.png",
       category: "anime",
       type: "image" as const,
     },
     {
       id: "anime-cafe",
       title: "Anime Cafe",
-      src: "/background-images/wp7575195-anime-cafe-wallpapers.jpg",
+      src: "./background-images/wp7575195-anime-cafe-wallpapers.jpg",
       category: "anime",
       type: "image" as const,
     },
@@ -154,84 +154,84 @@ const AVAILABLE_BACKGROUNDS = [
     {
       id: "vid-1",
       title: "Animated Space M",
-      src: "/background-videos/14244-255658092_medium.mp4",
+      src: "./background-videos/14244-255658092_medium.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-2",
       title: "Animated 2",
-      src: "/background-videos/153976-817104245_small.mp4",
+      src: "./background-videos/153976-817104245_small.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-3",
       title: "Animated 3",
-      src: "/background-videos/159627-819346937_small.mp4",
+      src: "./background-videos/159627-819346937_small.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-4",
       title: "Animated 4",
-      src: "/background-videos/186405-877993676_medium.mp4",
+      src: "./background-videos/186405-877993676_medium.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-5",
       title: "Animated 5",
-      src: "/background-videos/199001-909564581_small.mp4",
+      src: "./background-videos/199001-909564581_small.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-6",
       title: "Animated 6",
-      src: "/background-videos/215407_small.mp4",
+      src: "./background-videos/215407_small.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-7",
       title: "Animated 7",
-      src: "/background-videos/216134_small.mp4",
+      src: "./background-videos/216134_small.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-8",
       title: "City Rain",
-      src: "/background-videos/223111_medium.mp4",
+      src: "./background-videos/223111_medium.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-9",
       title: "Animated 9",
-      src: "/background-videos/270507_small.mp4",
+      src: "./background-videos/270507_small.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-10",
       title: "Animated 10",
-      src: "/background-videos/297736_medium.mp4",
+      src: "./background-videos/297736_medium.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-11",
       title: "Animated 11",
-      src: "/background-videos/310025_medium.mp4",
+      src: "./background-videos/310025_medium.mp4",
       category: "animated",
       type: "video" as const,
     },
     {
       id: "vid-12",
       title: "Animated 12",
-      src: "/background-videos/91562-629172467_small.mp4",
+      src: "./background-videos/91562-629172467_small.mp4",
       category: "animated",
       type: "video" as const,
     },
@@ -432,96 +432,104 @@ export default function ImageTool({
         <Text fontSize="sm" fontWeight="700" mb={3}>
           {activeTab === "Favorites" ? "Your Favorites" : "Featured Spaces"}
         </Text>
-        {filteredImages.length === 0 ? (
-          <Flex align="center" justify="center" h="200px" direction="column">
-            <Text color="whiteAlpha.500" fontSize="sm">
-              No images found
-            </Text>
-          </Flex>
-        ) : (
-          <Grid templateColumns="repeat(2, 1fr)" gap={3}>
-            {filteredImages.map((img) => (
-              <GridItem key={img.id}>
-                <Box
-                  position="relative"
-                  borderRadius="12px"
-                  overflow="hidden"
-                  cursor="pointer"
-                  onClick={() => onBackgroundSelect?.(img.src, img.type)}
-                  role="group"
-                  borderWidth={img.src === currentBackground ? "2px" : "0px"}
-                  borderColor="orange.400"
-                >
-                  {img.type === "video" ? (
-                    <video
-                      src={img.src}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      style={{
-                        objectFit: "cover",
-                        width: "100%",
-                        height: "100px",
-                        transition: "transform 0.2s",
-                        display: "block",
-                      }}
-                    />
-                  ) : (
-                    <Image
-                      src={img.src}
-                      alt={img.title}
-                      objectFit="cover"
-                      w="100%"
-                      h="100px"
-                      transition="transform 0.2s"
-                      _groupHover={{ transform: "scale(1.05)" }}
-                    />
-                  )}
+        <Box data-no-drag>
+          {filteredImages.length === 0 ? (
+            <Flex align="center" justify="center" h="200px" direction="column">
+              <Text color="whiteAlpha.500" fontSize="sm">
+                No images found
+              </Text>
+            </Flex>
+          ) : (
+            <Grid templateColumns="repeat(2, 1fr)" gap={3}>
+              {filteredImages.map((img) => (
+                <GridItem key={img.id}>
                   <Box
                     as="button"
-                    onClick={(e: React.MouseEvent) => toggleFavorite(img.id, e)}
-                    position="absolute"
-                    top={2}
-                    right={2}
-                    bg="blackAlpha.400"
-                    borderRadius="full"
-                    p={1}
-                    _hover={{ bg: "blackAlpha.600" }}
-                    transition="all 0.2s"
-                  >
-                    <Icon
-                      as={FiHeart}
-                      color={
-                        favorites.includes(img.id)
-                          ? "red.400"
-                          : "whiteAlpha.800"
-                      }
-                      fill={
-                        favorites.includes(img.id) ? "currentColor" : "none"
-                      }
-                      w={3}
-                      h={3}
-                    />
-                  </Box>
-                  <Box
-                    position="absolute"
-                    bottom={0}
-                    left={0}
                     w="100%"
-                    bg="linear-gradient(to top, rgba(0,0,0,0.8), transparent)"
-                    p={2}
-                    pt={4}
+                    textAlign="left"
+                    data-no-drag
+                    position="relative"
+                    borderRadius="12px"
+                    overflow="hidden"
+                    cursor="pointer"
+                    onClick={() => onBackgroundSelect?.(img.src, img.type)}
+                    role="group"
+                    borderWidth={img.src === currentBackground ? "2px" : "0px"}
+                    borderColor="orange.400"
                   >
-                    <Text fontSize="xs" fontWeight="600" color="white">
-                      {img.title}
-                    </Text>
+                    {img.type === "video" ? (
+                      <video
+                        src={img.src}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        style={{
+                          objectFit: "cover",
+                          width: "100%",
+                          height: "100px",
+                          transition: "transform 0.2s",
+                          display: "block",
+                        }}
+                      />
+                    ) : (
+                      <Image
+                        src={img.src}
+                        alt={img.title}
+                        objectFit="cover"
+                        w="100%"
+                        h="100px"
+                        transition="transform 0.2s"
+                        _groupHover={{ transform: "scale(1.05)" }}
+                      />
+                    )}
+                    <Box
+                      as="button"
+                      onClick={(e: React.MouseEvent) =>
+                        toggleFavorite(img.id, e)
+                      }
+                      position="absolute"
+                      top={2}
+                      right={2}
+                      bg="blackAlpha.400"
+                      borderRadius="full"
+                      p={1}
+                      _hover={{ bg: "blackAlpha.600" }}
+                      transition="all 0.2s"
+                    >
+                      <Icon
+                        as={FiHeart}
+                        color={
+                          favorites.includes(img.id)
+                            ? "red.400"
+                            : "whiteAlpha.800"
+                        }
+                        fill={
+                          favorites.includes(img.id) ? "currentColor" : "none"
+                        }
+                        w={3}
+                        h={3}
+                      />
+                    </Box>
+                    <Box
+                      position="absolute"
+                      bottom={0}
+                      left={0}
+                      w="100%"
+                      bg="linear-gradient(to top, rgba(0,0,0,0.8), transparent)"
+                      p={2}
+                      pt={4}
+                    >
+                      <Text fontSize="xs" fontWeight="600" color="white">
+                        {img.title}
+                      </Text>
+                    </Box>
                   </Box>
-                </Box>
-              </GridItem>
-            ))}
-          </Grid>
-        )}
+                </GridItem>
+              ))}
+            </Grid>
+          )}
+        </Box>
       </Box>
 
       {/* Footer - Current Selection Info */}

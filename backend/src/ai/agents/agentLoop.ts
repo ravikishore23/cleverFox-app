@@ -630,8 +630,10 @@ export async function proposeActions(
   userMessages: AiMessage[],
   vaultPath?: string,
   codeWorkspace?: string,
+  modelKey?: string
 ): Promise<AgentProposal> {
   const provider = makeProvider(process.env);
+  const { resolveModel } = await import("../providers/index.js");
 
   const lastUserMsg = [...userMessages]
     .reverse()
@@ -725,7 +727,10 @@ Rules:
       },
     ];
 
-    const out = await provider.chat({ messages: codePrompt });
+    const out = await provider.chat({ 
+      messages: codePrompt,
+      model: resolveModel(modelKey)
+    });
     let codeContent = out.outputText;
 
     // Strip markdown fences the LLM might have added anyway
@@ -806,7 +811,10 @@ Rules:
         },
       ];
 
-      const out = await provider.chat({ messages: contentPrompt });
+      const out = await provider.chat({ 
+        messages: contentPrompt,
+        model: resolveModel(modelKey)
+      });
       generatedContent = out.outputText;
 
       const filename = topicToFilename(intent.topic) + ".md";
@@ -964,7 +972,10 @@ If the user asks for JSON, return valid JSON.`,
       },
     ];
 
-    const out = await provider.chat({ messages: contentPrompt });
+    const out = await provider.chat({ 
+      messages: contentPrompt,
+      model: resolveModel(modelKey)
+    });
     const generatedFileContent = out.outputText.trim();
 
     actions.push({
@@ -1029,7 +1040,10 @@ Return ONLY a valid JSON object matching this schema, with NO markdown formattin
     ];
 
     try {
-      const out = await provider.chat({ messages: plannerPrompt });
+      const out = await provider.chat({ 
+        messages: plannerPrompt,
+        model: resolveModel(modelKey)
+      });
       let rawJson = out.outputText.trim();
       rawJson = rawJson
         .replace(/^```json\n?/i, "")
@@ -1055,6 +1069,7 @@ Return ONLY a valid JSON object matching this schema, with NO markdown formattin
           },
           ...userMessages,
         ],
+        model: resolveModel(modelKey)
       });
       return { response: out.outputText, actions: [] };
     }

@@ -11,6 +11,7 @@ import {
   Stack,
   Text,
   Textarea,
+  Portal,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -626,6 +627,7 @@ export default function NotesTool({ onClose }: NotesToolProps) {
 
   const tool = (
     <Box
+      data-fullscreen={toolFull}
       w={toolFull ? "100vw" : { base: "calc(100vw - 140px)", md: "980px" }}
       maxW={toolFull ? "100vw" : "calc(100vw - 140px)"}
       h={toolFull ? "100vh" : "auto"}
@@ -639,6 +641,10 @@ export default function NotesTool({ onClose }: NotesToolProps) {
       borderWidth={toolFull ? "0px" : "1px"}
       borderColor={toolFull ? "transparent" : "blackAlpha.200"}
       boxShadow={toolFull ? "none" : "0 18px 50px rgba(0,0,0,0.25)"}
+      position={toolFull ? "fixed" : "static"}
+      top={toolFull ? 0 : "auto"}
+      left={toolFull ? 0 : "auto"}
+      zIndex={toolFull ? 9999 : "auto"}
       overflow="hidden"
       display="flex"
       flexDirection="column"
@@ -1207,6 +1213,7 @@ export default function NotesTool({ onClose }: NotesToolProps) {
                   borderColor="blackAlpha.200"
                   p={4}
                   cursor="pointer"
+                  data-no-drag
                   _hover={{ boxShadow: "md" }}
                   onClick={() => openReader(n)}
                 >
@@ -1348,6 +1355,7 @@ export default function NotesTool({ onClose }: NotesToolProps) {
                   borderColor="blackAlpha.200"
                   p={4}
                   cursor="pointer"
+                  data-no-drag
                   _hover={{ boxShadow: "md" }}
                   onClick={() => openReader(n)}
                 >
@@ -1458,10 +1466,11 @@ export default function NotesTool({ onClose }: NotesToolProps) {
 
           {/* Reader overlay */}
           {readerNote ? (
+            <Portal>
             <Box
               position="fixed"
               inset={0}
-              zIndex={2500}
+              zIndex={999999}
               bg="blackAlpha.600"
               display="flex"
               alignItems="center"
@@ -1681,14 +1690,16 @@ export default function NotesTool({ onClose }: NotesToolProps) {
                 </Box>
               </Box>
             </Box>
+            </Portal>
           ) : null}
 
           {/* Delete confirm overlay */}
           {deleteConfirm ? (
+            <Portal>
             <Box
               position="fixed"
               inset={0}
-              zIndex={2600}
+              zIndex={999999}
               bg="blackAlpha.700"
               display="flex"
               alignItems="center"
@@ -1767,6 +1778,7 @@ export default function NotesTool({ onClose }: NotesToolProps) {
                 </Box>
               </Box>
             </Box>
+            </Portal>
           ) : null}
         </Stack>
       </Box>

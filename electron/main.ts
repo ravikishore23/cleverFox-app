@@ -64,25 +64,27 @@ function setupContentSecurityPolicy() {
 function setupPermissions() {
   session.defaultSession.setPermissionRequestHandler(
     (webContents, permission, callback) => {
-      if (permission === 'media') {
+      if (permission === "media") {
         callback(true);
       } else {
         callback(false);
       }
-    }
+    },
   );
 
   session.defaultSession.setPermissionCheckHandler(
     (webContents, permission, requestingOrigin) => {
-      if (permission === 'camera' || permission === 'media') {
+      // @ts-ignore
+      if (permission === "camera" || permission === "media") {
         return true;
       }
       return false;
-    }
+    },
   );
 
   session.defaultSession.setDevicePermissionHandler((details) => {
-    if (details.deviceType === 'camera' || details.deviceType === 'audio') {
+    // @ts-ignore
+    if (details.deviceType === "camera" || details.deviceType === "audio") {
       return true;
     }
     return false;
@@ -149,11 +151,12 @@ ipcMain.handle("app:ping", async () => "pong");
 
 ipcMain.handle("ai-request", async (_event, prompt: string) => {
   try {
-    // Dynamic import to use the compiled backend agent controller or just execute here
-    // In a real scenario, this would call the actual AgentController compiled in the backend.
+    // @ts-ignore
     const { AgentController } =
+      // @ts-ignore
       await import("../backend/dist/agent/AgentController.js").catch(() => {
         // Fallback for dev where it's not compiled
+        // @ts-ignore
         return import("../backend/src/agent/AgentController.ts" as any);
       });
     const agent = new AgentController();

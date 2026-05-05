@@ -10,6 +10,7 @@ import {
   Stack,
   Text,
   Textarea,
+  Portal,
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DatePickerInput } from "@mantine/dates";
@@ -545,28 +546,29 @@ export default function TaskTool({ onClose }: TaskToolProps) {
   return (
     <>
       <Box
+        data-fullscreen={isFullscreen}
         w={
-          isFullscreen
-            ? "calc(100vw - 32px)"
-            : { base: "calc(100vw - 140px)", md: "980px" }
+          isFullscreen ? "100vw" : { base: "calc(100vw - 140px)", md: "980px" }
         }
-        maxW={isFullscreen ? "calc(100vw - 32px)" : "calc(100vw - 140px)"}
+        maxW={isFullscreen ? "100vw" : "calc(100vw - 140px)"}
+        h={isFullscreen ? "100vh" : "auto"}
         maxH={
           isFullscreen
-            ? "calc(100vh - 32px)"
+            ? "100vh"
             : { base: "calc(100vh - 130px)", md: "calc(100vh - 170px)" }
         }
         bg="#FBF7EE"
-        borderRadius="22px"
-        borderWidth="2px"
+        borderRadius={isFullscreen ? "0px" : "22px"}
+        borderWidth={isFullscreen ? "0px" : "2px"}
         borderColor="#93C5FD"
-        boxShadow="0 18px 50px rgba(0,0,0,0.18)"
+        boxShadow={isFullscreen ? "none" : "0 18px 50px rgba(0,0,0,0.18)"}
         overflow="hidden"
         display="flex"
         flexDirection="column"
-        position={isFullscreen ? "fixed" : "relative"}
-        inset={isFullscreen ? 4 : undefined}
-        zIndex={isFullscreen ? 40 : undefined}
+        position={isFullscreen ? "fixed" : "static"}
+        top={isFullscreen ? 0 : "auto"}
+        left={isFullscreen ? 0 : "auto"}
+        zIndex={isFullscreen ? 9999 : "auto"}
       >
         {/* Top header + stats */}
         <Box bg="#E9E6F7" p={{ base: 4, md: 5 }}>
@@ -1189,16 +1191,17 @@ export default function TaskTool({ onClose }: TaskToolProps) {
 
       {/* Add New Task modal */}
       {adding ? (
-        <Box
-          position="fixed"
-          inset={0}
-          bg="blackAlpha.500"
-          zIndex={100}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          p={4}
-        >
+        <Portal>
+          <Box
+            position="fixed"
+            inset={0}
+            bg="blackAlpha.500"
+            zIndex={999999}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            p={4}
+          >
           <Box
             w={{ base: "100%", md: "880px" }}
             maxW="95vw"
@@ -1580,6 +1583,7 @@ export default function TaskTool({ onClose }: TaskToolProps) {
             </Stack>
           </Box>
         </Box>
+        </Portal>
       ) : null}
     </>
   );

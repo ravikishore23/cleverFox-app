@@ -16,8 +16,15 @@ type User = {
   name: string;
 };
 
+function isElectron(): boolean {
+  // Exposed via Electron preload (see electron/preload.ts)
+  return typeof window !== "undefined" && Boolean((window as any).cleverfox);
+}
+
 function App() {
-  const [screen, setScreen] = useState<Screen>("studyroom");
+  const [screen, setScreen] = useState<Screen>(
+    isElectron() ? "landing" : "studyroom",
+  );
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {

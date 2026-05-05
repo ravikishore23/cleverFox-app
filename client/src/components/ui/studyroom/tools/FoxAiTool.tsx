@@ -1913,7 +1913,7 @@ export default function FoxAiTool({ onOpenNotesTool }: FoxAiToolProps = {}) {
             messages: apiMessages,
             chatId: activeChatId,
             webSearchEnabled,
-            model: "deepseek",
+            model: "gpt",
           }),
           signal: controller.signal,
         });

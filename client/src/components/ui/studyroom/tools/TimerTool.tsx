@@ -130,17 +130,21 @@ export default function TimerTool(props: TimerToolProps) {
 
     const start = { x: e.clientX, y: e.clientY };
     const base = pos;
+    let newPos = base;
 
     const onMove = (ev: PointerEvent) => {
       const dx = ev.clientX - start.x;
       const dy = ev.clientY - start.y;
-      setPos(clampToViewport({ x: base.x + dx, y: base.y + dy }));
+      newPos = clampToViewport({ x: base.x + dx, y: base.y + dy });
+      if (widgetRef.current) {
+        widgetRef.current.style.transform = `translate3d(${newPos.x}px, ${newPos.y}px, 0)`;
+      }
     };
 
     const onUp = () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      setPos((p) => clampToViewport(p));
+      setPos(newPos);
     };
 
     window.addEventListener("pointermove", onMove);
@@ -170,12 +174,16 @@ export default function TimerTool(props: TimerToolProps) {
     <Box
       ref={widgetRef}
       position="fixed"
-      left={`${pos.x}px`}
-      top={`${pos.y}px`}
       zIndex={zIndex}
       w={{ base: "calc(100vw - 24px)", sm: "320px" }}
       maxW="360px"
       onPointerDown={() => onFocus?.()}
+      style={{
+        left: 0,
+        top: 0,
+        transform: `translate3d(${pos.x}px, ${pos.y}px, 0)`,
+        willChange: "transform",
+      }}
     >
       <Box
         bg={bgColor}

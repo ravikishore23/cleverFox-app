@@ -532,6 +532,7 @@ export default function VideoTool({
 
   return (
     <Box
+      data-fullscreen={isExpanded}
       w={isExpanded ? "100vw" : { base: "320px", md: "720px" }}
       h={isExpanded ? "100vh" : { base: "520px", md: "540px" }}
       position={isExpanded ? "fixed" : "static"}
