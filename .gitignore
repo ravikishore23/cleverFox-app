@@ -48,3 +48,5 @@ cleverfox_data/
 # Media assets
 musics/
 client/public/background-images/
+*.exe
+*.mp4
