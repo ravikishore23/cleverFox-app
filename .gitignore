@@ -13,6 +13,16 @@ node_modules
 .env
 .env.*
 !.env.example
+.envrc
+.npmrc
+.yarnrc
+.yarnrc.yml
+
+# Local env overrides
+*.env.local
+*.env.development
+*.env.test
+*.env.production
 
 # Python artifacts
 .venv
@@ -44,6 +54,21 @@ electron/dist
 
 # Local app data
 cleverfox_data/
+
+# Sensitive files
+*secrets*.json
+*secret*.json
+*credentials*.json
+*creds*.json
+*service-account*.json
+*service_account*.json
+**/*.local.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cert
 
 # Media assets
 musics/
