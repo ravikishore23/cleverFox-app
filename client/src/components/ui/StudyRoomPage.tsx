@@ -58,6 +58,7 @@ export default function StudyRoomPage({
   onExit: _onExit,
 }: StudyRoomPageProps) {
   const [isPanelMaximized, setIsPanelMaximized] = useState(false);
+  const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
 
   const [openTools, setOpenTools] = useState<Record<ToolKey, boolean>>({
     timer: true,
@@ -368,126 +369,166 @@ export default function StudyRoomPage({
       )}
       <Box position="absolute" inset={0} bg="blackAlpha.300" zIndex={1} />
 
-      {/* Bottom tool bar */}
-      <Flex
+      {/* Bottom tool bar area */}
+      <Box
         position="absolute"
-        bottom={3}
+        bottom={4}
         left="50%"
         transform="translateX(-50%)"
         zIndex={99999}
-        direction="row"
-        bg="rgba(12, 12, 14, 0.75)"
-        backdropFilter="blur(20px) saturate(180%)"
-        borderRadius="24px"
-        p={1.5}
-        boxShadow="0 24px 48px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08)"
+        onMouseEnter={() => setIsToolbarExpanded(true)}
+        onMouseLeave={() => setIsToolbarExpanded(false)}
+        display="flex"
+        justifyContent="center"
+        alignItems="flex-end"
+        h="100px"
+        w="800px" // wide hit area
+        pointerEvents="none" // let clicks pass through the invisible area
       >
-        <HStack gap={2} px={1} py={0.5}>
-          {sidebarItems.map((item) => {
-            const selected = openTools[item.key];
-            return (
-              <Box
-                key={item.key}
-                as="button"
-                onClick={() => toggleTool(item.key)}
-                role="group"
-                borderRadius="16px"
-                bg={selected ? "whiteAlpha.100" : "transparent"}
-                _hover={{ bg: "whiteAlpha.100", transform: "translateY(-2px)" }}
-                _active={{ transform: "scale(0.95)" }}
-                transition="all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
-                px={2}
-                py={1.5}
-                display="flex"
-                flexDirection="column"
-                alignItems="center"
-                gap={1}
-                position="relative"
-              >
-                {/* Active Indicator Glow */}
-                {selected && (
-                  <Box
-                    position="absolute"
-                    inset="0"
-                    borderRadius="20px"
-                    bg="white"
-                    opacity={0.05}
-                    filter="blur(8px)"
-                    zIndex={-1}
-                  />
-                )}
+        {/* The Floating Bubble (collapsed state) */}
+        <Flex
+          position="absolute"
+          bottom="0"
+          w="52px"
+          h="52px"
+          bg="rgba(12, 12, 14, 0.85)"
+          backdropFilter="blur(20px)"
+          borderRadius="full"
+          boxShadow="0 8px 32px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1)"
+          align="center"
+          justify="center"
+          cursor="pointer"
+          opacity={isToolbarExpanded ? 0 : 1}
+          transform={isToolbarExpanded ? "scale(0.8) translateY(20px)" : "scale(1) translateY(0)"}
+          pointerEvents={isToolbarExpanded ? "none" : "auto"}
+          transition="all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
+          _hover={{ transform: "scale(1.05)", bg: "rgba(20, 20, 24, 0.95)" }}
+        >
+          <Image src="./ai-logo.png" boxSize={6} objectFit="contain" />
+        </Flex>
 
+        {/* The Expanded Toolbar */}
+        <Flex
+          position="absolute"
+          bottom="0"
+          direction="row"
+          bg="rgba(12, 12, 14, 0.85)"
+          backdropFilter="blur(20px) saturate(180%)"
+          borderRadius="24px"
+          p={1.5}
+          boxShadow="0 24px 48px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1)"
+          opacity={isToolbarExpanded ? 1 : 0}
+          transform={isToolbarExpanded ? "translateY(0) scale(1)" : "translateY(20px) scale(0.9)"}
+          pointerEvents={isToolbarExpanded ? "auto" : "none"}
+          transition="all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)"
+        >
+          <HStack gap={2} px={1} py={0.5}>
+            {sidebarItems.map((item) => {
+              const selected = openTools[item.key];
+              return (
                 <Box
-                  w="34px"
-                  h="34px"
-                  borderRadius="10px"
-                  bg={
-                    selected
-                      ? "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)"
-                      : "transparent"
-                  }
-                  borderWidth="1px"
-                  borderColor={selected ? "whiteAlpha.300" : "transparent"}
+                  key={item.key}
+                  as="button"
+                  onClick={() => toggleTool(item.key)}
+                  role="group"
+                  borderRadius="16px"
+                  bg={selected ? "whiteAlpha.100" : "transparent"}
+                  _hover={{ bg: "whiteAlpha.100", transform: "translateY(-2px)" }}
+                  _active={{ transform: "scale(0.95)" }}
+                  transition="all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)"
+                  px={2}
+                  py={1.5}
                   display="flex"
+                  flexDirection="column"
                   alignItems="center"
-                  justifyContent="center"
-                  transition="all 0.3s"
-                  _groupHover={{
-                    bg: selected ? undefined : "whiteAlpha.50",
-                    borderColor: selected ? undefined : "whiteAlpha.100",
-                  }}
-                  boxShadow={
-                    selected
-                      ? "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)"
-                      : "none"
-                  }
+                  gap={1}
+                  position="relative"
                 >
-                  {item.image ? (
-                    <Image
-                      src={item.image}
-                      w="16px"
-                      h="16px"
-                      objectFit="contain"
-                      opacity={selected ? 1 : 0.6}
-                      transition="all 0.3s"
-                      _groupHover={{ opacity: 1, transform: "scale(1.1)" }}
-                      filter={
-                        selected
-                          ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-                          : "none"
-                      }
-                    />
-                  ) : (
-                    <Icon
-                      as={item.icon}
-                      boxSize={4}
-                      color={selected ? "white" : "whiteAlpha.600"}
-                      transition="all 0.3s"
-                      _groupHover={{ color: "white", transform: "scale(1.1)" }}
-                      filter={
-                        selected
-                          ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
-                          : "none"
-                      }
+                  {/* Active Indicator Glow */}
+                  {selected && (
+                    <Box
+                      position="absolute"
+                      inset="0"
+                      borderRadius="20px"
+                      bg="white"
+                      opacity={0.05}
+                      filter="blur(8px)"
+                      zIndex={-1}
                     />
                   )}
+
+                  <Box
+                    w="34px"
+                    h="34px"
+                    borderRadius="10px"
+                    bg={
+                      selected
+                        ? "linear-gradient(180deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)"
+                        : "transparent"
+                    }
+                    borderWidth="1px"
+                    borderColor={selected ? "whiteAlpha.300" : "transparent"}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    transition="all 0.3s"
+                    _groupHover={{
+                      bg: selected ? undefined : "whiteAlpha.50",
+                      borderColor: selected ? undefined : "whiteAlpha.100",
+                    }}
+                    boxShadow={
+                      selected
+                        ? "0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)"
+                        : "none"
+                    }
+                  >
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        w="16px"
+                        h="16px"
+                        objectFit="contain"
+                        opacity={selected ? 1 : 0.6}
+                        transition="all 0.3s"
+                        _groupHover={{ opacity: 1, transform: "scale(1.1)" }}
+                        filter={
+                          selected
+                            ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                            : "none"
+                        }
+                      />
+                    ) : (
+                      <Icon
+                        as={item.icon}
+                        boxSize={4}
+                        color={selected ? "white" : "whiteAlpha.600"}
+                        transition="all 0.3s"
+                        _groupHover={{ color: "white", transform: "scale(1.1)" }}
+                        filter={
+                          selected
+                            ? "drop-shadow(0 2px 4px rgba(0,0,0,0.3))"
+                            : "none"
+                        }
+                      />
+                    )}
+                  </Box>
+                  <Text
+                    fontSize="8px"
+                    fontWeight="700"
+                    textTransform="uppercase"
+                    letterSpacing="0.05em"
+                    color={selected ? "white" : "whiteAlpha.500"}
+                    transition="all 0.3s"
+                    _groupHover={{ color: "whiteAlpha.900" }}
+                  >
+                    {item.label}
+                  </Text>
                 </Box>
-                <Text
-                  fontSize="8px"
-                  fontWeight="700"
-                  textTransform="uppercase"
-                  letterSpacing="0.05em"
-                  color={selected ? "white" : "whiteAlpha.500"}
-                  transition="all 0.3s"
-                  _groupHover={{ color: "whiteAlpha.900" }}
-                >
-                  {item.label}
-                </Text>
-              </Box>
-            );
-          })}
-        </HStack>
-      </Flex>
+              );
+            })}
+          </HStack>
+        </Flex>
+      </Box>
 
       {/* Floating Tools */}
 

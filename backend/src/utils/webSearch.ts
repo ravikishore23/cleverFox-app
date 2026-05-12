@@ -1,4 +1,6 @@
 import * as cheerio from "cheerio";
+// @ts-ignore
+import ytSearch from "youtube-search-api";
 
 export type SearchResult = {
   title: string;
@@ -8,6 +10,19 @@ export type SearchResult = {
 
 export async function performWebSearch(query: string): Promise<SearchResult[]> {
   try {
+    if (query.includes("site:youtube.com")) {
+        const cleanQuery = query.replace("site:youtube.com", "").trim();
+        const results = await ytSearch.GetListByKeyword(cleanQuery, false, 5);
+        if (results && results.items && results.items.length > 0) {
+             return results.items.map((item: any) => ({
+                 title: item.title,
+                 link: `https://www.youtube.com/watch?v=${item.id}`,
+                 snippet: `YouTube Video: ${item.title}`
+             }));
+        }
+        return [];
+    }
+
     const response = await fetch(`https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`, {
       headers: {
         "User-Agent":

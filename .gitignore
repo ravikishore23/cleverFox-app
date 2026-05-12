@@ -9,6 +9,23 @@ lerna-debug.log*
 
 node_modules
 
+# Env and local config
+.env
+.env.*
+!.env.example
+
+# Python artifacts
+.venv
+__pycache__/
+*.py[cod]
+
+# Build outputs
+dist
+build
+coverage
+.cache
+out
+
 dist-ssr
 *.local
 
@@ -24,3 +41,6 @@ dist-ssr
 *.sw?
 dist-react
 electron/dist
+
+# Local app data
+cleverfox_data/

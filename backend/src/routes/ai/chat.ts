@@ -109,26 +109,40 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
 
     // Check if web search is requested (manual toggle only)
     let searchContext = "";
-    /*
-    // Automatic web search using scraping is disabled per user request
+    
+    // Automatic web search using scraping was disabled, but is re-enabled selectively for search queries/youtube links per user request.
     const lastUserMsg = [...body.messages]
       .reverse()
       .find((m) => m.role === "user");
 
     let isWebSearchNeeded = body.webSearchEnabled || false;
+    let isYoutubeSearch = false;
 
     if (!isWebSearchNeeded && lastUserMsg) {
       const content = lastUserMsg.content.toLowerCase();
-      const triggers = [
+      const searchTriggers = [
         "today", "news", "recent", "latest", "current", "search for", "look up",
         "who won", "what is the weather", "2024", "2025", "2026", "now", "update", "price", "happen"
       ];
-      isWebSearchNeeded = triggers.some((trigger) => content.includes(trigger));
+      isWebSearchNeeded = searchTriggers.some((trigger) => content.includes(trigger));
+      
+      const ytRegex = /\b(yt|youtube)\b/i;
+      const linkRegex = /\b(link|links|video|videos)\b/i;
+      
+      if (ytRegex.test(content) || (content.includes("llm") && linkRegex.test(content)) || linkRegex.test(content)) {
+          // If the user mentions yt/youtube, or asks for videos/links, we enable search.
+          isWebSearchNeeded = true;
+          isYoutubeSearch = true;
+      }
     }
 
     if (isWebSearchNeeded && lastUserMsg) {
       try {
-        const results = await performWebSearch(lastUserMsg.content);
+        let searchQuery = lastUserMsg.content;
+        if (isYoutubeSearch && !searchQuery.toLowerCase().includes("site:youtube.com")) {
+            searchQuery = `site:youtube.com ${searchQuery}`;
+        }
+        const results = await performWebSearch(searchQuery);
         if (results.length > 0) {
           searchContext =
             `\n\nREAL-TIME WEB SEARCH RESULTS for "${lastUserMsg.content}":\n` +
@@ -138,13 +152,12 @@ aiRouter.post("/ai/chat", async (req, res, next) => {
                   `Title: ${r.title}\nLink: ${r.link}\nSnippet: ${r.snippet}`,
               )
               .join("\n\n") +
-            `\n\nSince your internal knowledge ends in 2024, use these search results to provide the best, most up-to-date answer about current events. Address the user's query thoughtfully. Cite URLs inline if useful.`;
+            `\n\nUse these search results to provide the best, most up-to-date answer. If the user asked for YouTube videos, prioritize giving them actual, exact YouTube links from the search results. Address the user's query thoughtfully. Cite exact URLs. DO NOT hallucinate URLs.`;
         }
       } catch (e) {
         console.error("Web search failed silently", e);
       }
     }
-    */
 
     // Sanitize messages for provider
     const providerMessages = [
