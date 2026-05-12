@@ -44,3 +44,7 @@ electron/dist
 
 # Local app data
 cleverfox_data/
+
+# Media assets
+musics/
+client/public/background-images/
